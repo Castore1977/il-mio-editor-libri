@@ -432,7 +432,6 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
     );
 };
 
-// --- MODIFICA: Il componente Editor ora accetta 'onEnterConcentrationMode' ---
 const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onEnterConcentrationMode }) => {
     const contentRef = useRef(null);
 
@@ -459,7 +458,6 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
             <>
                 <div className="flex items-center justify-between mb-4 border-b border-gray-300 dark:border-gray-700 pb-2">
                     <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none"/>
-                    {/* --- NUOVO: Pulsante per entrare in modalità concentrazione --- */}
                     <button onClick={() => onEnterConcentrationMode(item)} className="p-2 text-gray-500 hover:text-blue-500" title="Modalità Concentrazione">
                         <Maximize size={20} />
                     </button>
@@ -529,7 +527,6 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
     );
 };
 
-// --- MODIFICA: Toolbar ora accetta 'isParagraphSelected' per essere più generica ---
 const Toolbar = ({ onFontChange, onAlignChange, currentFont, currentAlign, isParagraphSelected }) => {
     const fonts = ['Arial', 'Verdana', 'Times New Roman', 'Georgia', 'Courier New', 'Comic Sans MS'];
     const applyStyle = (command) => document.execCommand(command, false, null);
@@ -625,24 +622,59 @@ const ExportModal = ({ show, onClose, chapters, onExport }) => {
     );
 };
 
-// --- NUOVO COMPONENTE: ConcentrationEditor ---
+// --- MODIFICA: Componente ConcentrationEditor aggiornato con la modalità "Typewriter" ---
 const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChange }) => {
     const contentRef = useRef(null);
+    const scrollContainerRef = useRef(null); // Ref per il contenitore scrollabile
     const [currentData, setCurrentData] = useState(item.data);
 
-    useEffect(() => {
-        // Popola l'editor con il contenuto iniziale
-        if (contentRef.current) {
-            contentRef.current.innerHTML = currentData.content;
+    // Funzione per gestire la posizione del cursore e lo scroll
+    const handleCursorPosition = useCallback(() => {
+        const selection = window.getSelection();
+        if (!selection.rangeCount) return;
+
+        const range = selection.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        const scrollContainer = scrollContainerRef.current;
+
+        // Non fare nulla se il contenitore non esiste o il cursore non è visibile (es. rect a zero)
+        if (!scrollContainer || (rect.width === 0 && rect.height === 0)) return;
+
+        const viewportMidpoint = window.innerHeight / 2;
+
+        // Se la parte inferiore del cursore è sotto il punto centrale, scorri
+        if (rect.bottom > viewportMidpoint) {
+            const scrollAmount = rect.bottom - viewportMidpoint;
+            scrollContainer.scrollBy({ top: scrollAmount, behavior: 'smooth' });
         }
-    }, []); // Esegui solo una volta all'apertura
+    }, []);
+
+    useEffect(() => {
+        const editor = contentRef.current;
+        if (editor) {
+            // Popola l'editor con il contenuto iniziale solo una volta
+            if (editor.innerHTML !== currentData.content) {
+               editor.innerHTML = currentData.content;
+            }
+            
+            // Aggiungi event listeners per la modalità typewriter
+            editor.addEventListener('keyup', handleCursorPosition);
+            editor.addEventListener('mouseup', handleCursorPosition);
+
+            // Cleanup al unmount del componente
+            return () => {
+                editor.removeEventListener('keyup', handleCursorPosition);
+                editor.removeEventListener('mouseup', handleCursorPosition);
+            };
+        }
+    }, [handleCursorPosition]); // Esegui solo quando il componente monta e la funzione di callback cambia
 
     const handleBlur = (e) => {
         // Salva il contenuto quando l'utente lascia l'area di testo
         onUpdate('content', e.target.innerHTML);
     };
     
-    // Funzioni wrapper per aggiornare lo stato locale e propagare le modifiche
+    // Funzioni wrapper per aggiornare lo stato locale e propagare le modifiche alla toolbar
     const handleLocalFontChange = (font) => {
         setCurrentData(prev => ({ ...prev, font }));
         onFontChange(font);
@@ -661,12 +693,18 @@ const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChan
                     onAlignChange={handleLocalAlignChange} 
                     currentFont={currentData.font} 
                     currentAlign={currentData.align}
-                    isParagraphSelected={true} // La toolbar è sempre attiva qui
+                    isParagraphSelected={true} // La toolbar è sempre attiva in questa modalità
                  />
             </div>
-            <div className="flex-1 overflow-y-auto p-8 md:p-16 flex justify-center">
-                 <div className="max-w-3xl w-full">
+            {/* Contenitore principale che gestisce lo scroll */}
+            <div 
+                ref={scrollContainerRef} 
+                className="flex-1 overflow-y-auto flex justify-center"
+            >
+                 {/* Wrapper interno con padding per dare spazio allo scroll */}
+                 <div className="max-w-3xl w-full pt-16 pb-[50vh]"> 
                     <h1 className="text-3xl font-bold mb-4 text-gray-700 dark:text-gray-300">{currentData.title}</h1>
+                    {/* L'area di testo editabile */}
                     <div
                         ref={contentRef}
                         contentEditable
@@ -687,26 +725,20 @@ const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChan
 
 // --- MAIN APP COMPONENT ---
 export default function App() {
-    //
-    // --- 1. HOOKS DECLARATIONS ---
-    //
     const [user, setUser] = useState(null);
     const [books, setBooks] = useState({});
     const [isLoading, setIsLoading] = useState(true);
     const [activeBookId, setActiveBookId] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
     const [activeTab, setActiveTab] = useState('index');
-    // --- MODIFICA: da booleano a stato per l'oggetto paragrafo ---
     const [concentrationModeItem, setConcentrationModeItem] = useState(null);
     const [isExporting, setIsExporting] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
     const [scriptsLoaded, setScriptsLoaded] = useState(false);
     const [bookToDelete, setBookToDelete] = useState(null);
     const [pendingImportData, setPendingImportData] = useState(null);
-
     const dragItem = useRef(null);
 
-    // --- EFFECT HOOKS ---
     useEffect(() => {
         if (!auth) { 
             setIsLoading(false); 
@@ -752,21 +784,16 @@ export default function App() {
             .then(() => setScriptsLoaded(true)).catch(console.error);
     }, []);
 
-    // --- CALLBACK HOOKS (Handlers) ---
     const updateActiveBookData = useCallback(async (updater) => {
         if (!activeBookId || !user || !books[activeBookId]) return;
         const currentBook = books[activeBookId];
         const updatedData = updater(JSON.parse(JSON.stringify(currentBook.data)));
         const updatedBook = { ...currentBook, data: updatedData, lastModified: Date.now() };
-        
-        // Optimistic UI update
         setBooks(currentBooks => ({ ...currentBooks, [activeBookId]: updatedBook }));
-        
         try {
             await setDoc(doc(db, "users", user.uid, "books", activeBookId), updatedBook);
         } catch (error) {
             console.error("Error updating book:", error);
-            // Rollback on error
             setBooks(currentBooks => ({ ...currentBooks, [activeBookId]: currentBook }));
         }
     }, [activeBookId, user, books]);
@@ -818,7 +845,6 @@ export default function App() {
     
     const exportAllBooks = useCallback(() => {
         if(Object.keys(books).length === 0) {
-            // Sostituisci alert con un modale o una notifica più elegante in futuro
             alert("Non c'è nessun libro da esportare.");
             return;
         }
@@ -983,10 +1009,8 @@ export default function App() {
         handleUpdateSelectedItem('align', align);
     }, [selectedItem, handleUpdateSelectedItem]);
     
-    // --- NUOVI HANDLERS: Specifici per la modalità concentrazione ---
     const handleUpdateConcentrationItem = useCallback((field, value) => {
         if (!concentrationModeItem) return;
-        // Aggiorna lo stato per la UI e poi salva su Firebase
         setConcentrationModeItem(prev => ({...prev, data: {...prev.data, [field]: value}}));
         updateActiveBookData(data => {
             const { chapterIndex, paragraphIndex } = concentrationModeItem;
@@ -1136,7 +1160,6 @@ export default function App() {
 
     const editorItem = selectedItem ? {
         type: selectedItem.type,
-        // --- NUOVO: Aggiungo gli indici all'item per passarlo alla modalità concentrazione ---
         chapterIndex: selectedItem.chapterIndex,
         paragraphIndex: selectedItem.paragraphIndex,
         data: selectedItem.type === 'chapter' ? activeBookData.chapters[selectedItem.index]
@@ -1147,7 +1170,6 @@ export default function App() {
 
     const currentParagraphStyle = (selectedItem?.type === 'paragraph' && editorItem?.data) || { font: 'Arial', align: 'left' };
 
-    // --- MODIFICA: Logica di rendering per la nuova modalità concentrazione ---
     if (concentrationModeItem) {
         return (
             <ConcentrationEditor
