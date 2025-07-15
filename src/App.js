@@ -1,10 +1,13 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { Plus, Trash2, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Monitor, Smartphone, FileDown, X, GripVertical, BookOpen, Users, MapPin, BarChart2, Upload, Download, Calendar, Home, Book, AlertTriangle, Loader2, LogOut } from 'lucide-react';
+// --- MODIFICA: Aggiunta l'icona Maximize ---
+import { Plus, Trash2, Bold, Italic, Underline, AlignLeft, AlignCenter, AlignRight, Monitor, Smartphone, FileDown, X, GripVertical, BookOpen, Users, MapPin, BarChart2, Upload, Download, Calendar, Home, Book, AlertTriangle, Loader2, LogOut, Maximize } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query } from "firebase/firestore";
 
 // --- FIREBASE CONFIGURATION ---
+// ATTENZIONE: Queste chiavi sono di esempio e non funzioneranno.
+// Sostituiscile con le tue chiavi Firebase reali.
 const firebaseConfig = {
     apiKey: "AIzaSyBHVUJq6uTXyPph8dAyoXDCC_i8CMeGVZU",
     authDomain: "il-mio-editor-libri.firebaseapp.com",
@@ -15,28 +18,18 @@ const firebaseConfig = {
     measurementId: "G-DLC0JG4NSL"
 };
 
-// --- ERROR COMPONENT FOR FIREBASE CONFIG ---
-const FirebaseConfigError = () => {
-    return (
-        <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 text-red-800 p-4">
-            <div className="max-w-2xl text-center">
-                <AlertTriangle className="mx-auto text-red-500 mb-4" size={64} />
-                <h1 className="text-4xl font-bold mb-4">Errore di Configurazione Firebase</h1>
-                <p className="text-lg mb-6">Le chiavi di configurazione Firebase non sono state impostate correttamente.</p>
-            </div>
-        </div>
-    );
-};
-
 // --- FIREBASE INITIALIZATION ---
 let app;
+let auth;
+let db;
 try {
     app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getFirestore(app);
 } catch (error) {
     console.error("Firebase initialization error:", error);
+    // Se le chiavi non sono valide, l'app mostrerà un errore.
 }
-const auth = app ? getAuth(app) : null;
-const db = app ? getFirestore(app) : null;
 
 // --- HELPER FUNCTIONS ---
 const generateId = () => `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -70,7 +63,7 @@ const daysBetween = (date1, date2) => {
 
 // --- CHILD COMPONENTS ---
 
-const AuthScreen = () => {
+const AuthScreen = ({auth}) => {
     const [isLoginView, setIsLoginView] = useState(true);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -293,7 +286,7 @@ const TimelineView = ({ chapters }) => {
                                     return (
                                         <div key={p.id} className="w-full h-8 group relative">
                                             <div className="absolute h-full bg-blue-500 hover:bg-blue-700 rounded-md transition-all" style={{ left: `${offset}%`, width: `${width}%` }}>
-                                                <span className="text-black text-xs font-medium truncate px-2 leading-8">{p.title}</span>
+                                                <span className="text-white text-xs font-medium truncate px-2 leading-8">{p.title}</span>
                                                 <div className="absolute bottom-full mb-2 w-max p-2 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                                                     {p.title}<br/>
                                                     {formatDate(pStart)} - {formatDate(pEnd)}
@@ -439,8 +432,10 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
     );
 };
 
-const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange }) => {
+// --- MODIFICA: Il componente Editor ora accetta 'onEnterConcentrationMode' ---
+const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onEnterConcentrationMode }) => {
     const contentRef = useRef(null);
+
     useEffect(() => {
         if (item?.type === 'paragraph' && contentRef.current) {
             if (contentRef.current.innerHTML !== item.data.content) {
@@ -448,9 +443,11 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange }) =
             }
         }
     }, [item]);
+
     if (!item) {
         return <div className="flex-1 p-8 text-center text-gray-500 flex items-center justify-center"><div><Book size={48} className="mx-auto text-gray-400 mb-4"/><p>Seleziona un elemento dalla barra laterale per iniziare a modificare.</p></div></div>;
     }
+
     const renderers = {
         chapter: () => (
             <>
@@ -460,7 +457,13 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange }) =
         ),
         paragraph: () => (
             <>
-                <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none mb-4 border-b border-gray-300 dark:border-gray-700 pb-2"/>
+                <div className="flex items-center justify-between mb-4 border-b border-gray-300 dark:border-gray-700 pb-2">
+                    <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none"/>
+                    {/* --- NUOVO: Pulsante per entrare in modalità concentrazione --- */}
+                    <button onClick={() => onEnterConcentrationMode(item)} className="p-2 text-gray-500 hover:text-blue-500" title="Modalità Concentrazione">
+                        <Maximize size={20} />
+                    </button>
+                </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data Inizio</label>
@@ -516,6 +519,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange }) =
             </>
         )
     };
+
     return (
         <div className="flex-1 flex flex-col p-8 md:p-12 overflow-y-auto">
             <div className="max-w-4xl mx-auto w-full">
@@ -525,12 +529,13 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange }) =
     );
 };
 
-const Toolbar = ({ onFontChange, onAlignChange, currentFont, currentAlign, selectedItem }) => {
+// --- MODIFICA: Toolbar ora accetta 'isParagraphSelected' per essere più generica ---
+const Toolbar = ({ onFontChange, onAlignChange, currentFont, currentAlign, isParagraphSelected }) => {
     const fonts = ['Arial', 'Verdana', 'Times New Roman', 'Georgia', 'Courier New', 'Comic Sans MS'];
     const applyStyle = (command) => document.execCommand(command, false, null);
-    const isParagraphSelected = selectedItem?.type === 'paragraph';
+
     return (
-        <div className="p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center space-x-2 flex-wrap">
+        <div className="p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center space-x-2 flex-wrap justify-center">
             <button onClick={() => applyStyle('bold')} disabled={!isParagraphSelected} className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"><Bold size={20} /></button>
             <button onClick={() => applyStyle('italic')} disabled={!isParagraphSelected} className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"><Italic size={20} /></button>
             <button onClick={() => applyStyle('underline')} disabled={!isParagraphSelected} className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"><Underline size={20} /></button>
@@ -620,11 +625,70 @@ const ExportModal = ({ show, onClose, chapters, onExport }) => {
     );
 };
 
-// --- MAIN APP COMPONENT ---
+// --- NUOVO COMPONENTE: ConcentrationEditor ---
+const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChange }) => {
+    const contentRef = useRef(null);
+    const [currentData, setCurrentData] = useState(item.data);
 
+    useEffect(() => {
+        // Popola l'editor con il contenuto iniziale
+        if (contentRef.current) {
+            contentRef.current.innerHTML = currentData.content;
+        }
+    }, []); // Esegui solo una volta all'apertura
+
+    const handleBlur = (e) => {
+        // Salva il contenuto quando l'utente lascia l'area di testo
+        onUpdate('content', e.target.innerHTML);
+    };
+    
+    // Funzioni wrapper per aggiornare lo stato locale e propagare le modifiche
+    const handleLocalFontChange = (font) => {
+        setCurrentData(prev => ({ ...prev, font }));
+        onFontChange(font);
+    };
+
+    const handleLocalAlignChange = (align) => {
+        setCurrentData(prev => ({ ...prev, align }));
+        onAlignChange(align);
+    };
+
+    return (
+        <div className="fixed inset-0 bg-white dark:bg-black z-50 flex flex-col">
+            <div className="flex-shrink-0">
+                 <Toolbar 
+                    onFontChange={handleLocalFontChange} 
+                    onAlignChange={handleLocalAlignChange} 
+                    currentFont={currentData.font} 
+                    currentAlign={currentData.align}
+                    isParagraphSelected={true} // La toolbar è sempre attiva qui
+                 />
+            </div>
+            <div className="flex-1 overflow-y-auto p-8 md:p-16 flex justify-center">
+                 <div className="max-w-3xl w-full">
+                    <h1 className="text-3xl font-bold mb-4 text-gray-700 dark:text-gray-300">{currentData.title}</h1>
+                    <div
+                        ref={contentRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={handleBlur}
+                        className="text-xl leading-relaxed prose dark:prose-invert max-w-none w-full focus:outline-none"
+                        style={{ fontFamily: currentData.font, textAlign: currentData.align }}
+                    />
+                </div>
+            </div>
+            <button onClick={onExit} className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white p-2 rounded-full bg-gray-200 dark:bg-gray-800">
+                <X size={24} />
+            </button>
+        </div>
+    );
+};
+
+
+// --- MAIN APP COMPONENT ---
 export default function App() {
     //
-    // --- 1. HOOKS DECLARATIONS (TUTTI QUI, IN CIMA) ---
+    // --- 1. HOOKS DECLARATIONS ---
     //
     const [user, setUser] = useState(null);
     const [books, setBooks] = useState({});
@@ -632,7 +696,8 @@ export default function App() {
     const [activeBookId, setActiveBookId] = useState(null);
     const [selectedItem, setSelectedItem] = useState(null);
     const [activeTab, setActiveTab] = useState('index');
-    const [isConcentrationMode, setIsConcentrationMode] = useState(false);
+    // --- MODIFICA: da booleano a stato per l'oggetto paragrafo ---
+    const [concentrationModeItem, setConcentrationModeItem] = useState(null);
     const [isExporting, setIsExporting] = useState(false);
     const [showExportModal, setShowExportModal] = useState(false);
     const [scriptsLoaded, setScriptsLoaded] = useState(false);
@@ -640,11 +705,13 @@ export default function App() {
     const [pendingImportData, setPendingImportData] = useState(null);
 
     const dragItem = useRef(null);
-    const dragOverItem = useRef(null);
 
     // --- EFFECT HOOKS ---
     useEffect(() => {
-        if (!auth) { setIsLoading(false); return; }
+        if (!auth) { 
+            setIsLoading(false); 
+            return; 
+        }
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             setIsLoading(false);
@@ -685,17 +752,21 @@ export default function App() {
             .then(() => setScriptsLoaded(true)).catch(console.error);
     }, []);
 
-    // --- CALLBACK HOOKS (Handlers for UI interaction) ---
+    // --- CALLBACK HOOKS (Handlers) ---
     const updateActiveBookData = useCallback(async (updater) => {
         if (!activeBookId || !user || !books[activeBookId]) return;
         const currentBook = books[activeBookId];
         const updatedData = updater(JSON.parse(JSON.stringify(currentBook.data)));
         const updatedBook = { ...currentBook, data: updatedData, lastModified: Date.now() };
+        
+        // Optimistic UI update
         setBooks(currentBooks => ({ ...currentBooks, [activeBookId]: updatedBook }));
+        
         try {
-            await setDoc(doc(db, "users", user.uid, "books", activeBookId), updatedBook, { merge: true });
+            await setDoc(doc(db, "users", user.uid, "books", activeBookId), updatedBook);
         } catch (error) {
             console.error("Error updating book:", error);
+            // Rollback on error
             setBooks(currentBooks => ({ ...currentBooks, [activeBookId]: currentBook }));
         }
     }, [activeBookId, user, books]);
@@ -707,7 +778,11 @@ export default function App() {
         try {
             await setDoc(doc(db, "users", user.uid, "books", newBook.id), newBook);
             setActiveBookId(newBook.id);
-        } catch (error) { console.error("Error creating book:", error); }
+        } catch (error) { 
+            console.error("Error creating book:", error); 
+        } finally {
+            setIsLoading(false);
+        }
     }, [user]);
 
     const handleSelectBook = useCallback((bookId) => {
@@ -739,10 +814,11 @@ export default function App() {
             setActiveBookId(null);
             setBooks({});
         } catch (error) { console.error("Error signing out:", error); }
-    }, []);
+    }, [auth]);
     
     const exportAllBooks = useCallback(() => {
         if(Object.keys(books).length === 0) {
+            // Sostituisci alert con un modale o una notifica più elegante in futuro
             alert("Non c'è nessun libro da esportare.");
             return;
         }
@@ -763,7 +839,7 @@ export default function App() {
                 if (typeof importedBooks === 'object' && importedBooks !== null && !Array.isArray(importedBooks)) {
                      const firstKey = Object.keys(importedBooks)[0];
                      if (!firstKey || (importedBooks[firstKey].id && importedBooks[firstKey].title && importedBooks[firstKey].data)) {
-                        setPendingImportData(importedBooks);
+                         setPendingImportData(importedBooks);
                      } else { throw new Error("Struttura del libro non valida nel file JSON."); }
                 } else { throw new Error("Il file JSON non è un oggetto valido per la libreria."); }
             } catch (err) {
@@ -907,6 +983,31 @@ export default function App() {
         handleUpdateSelectedItem('align', align);
     }, [selectedItem, handleUpdateSelectedItem]);
     
+    // --- NUOVI HANDLERS: Specifici per la modalità concentrazione ---
+    const handleUpdateConcentrationItem = useCallback((field, value) => {
+        if (!concentrationModeItem) return;
+        // Aggiorna lo stato per la UI e poi salva su Firebase
+        setConcentrationModeItem(prev => ({...prev, data: {...prev.data, [field]: value}}));
+        updateActiveBookData(data => {
+            const { chapterIndex, paragraphIndex } = concentrationModeItem;
+            const paragraphToUpdate = data.chapters[chapterIndex]?.paragraphs[paragraphIndex];
+            if (paragraphToUpdate) {
+                paragraphToUpdate[field] = value;
+            }
+            return data;
+        });
+    }, [concentrationModeItem, updateActiveBookData]);
+
+    const handleConcentrationFontChange = useCallback((font) => {
+        if (!concentrationModeItem) return;
+        handleUpdateConcentrationItem('font', font);
+    }, [concentrationModeItem, handleUpdateConcentrationItem]);
+
+    const handleConcentrationAlignChange = useCallback((align) => {
+        if (!concentrationModeItem) return;
+        handleUpdateConcentrationItem('align', align);
+    }, [concentrationModeItem, handleUpdateConcentrationItem]);
+
     const handleDragDrop = useCallback((e, dropParams) => {
         const dragParams = dragItem.current;
         if (!dragParams) return;
@@ -928,7 +1029,7 @@ export default function App() {
     }, [updateActiveBookData]);
 
     const exportToPdf = useCallback(async (selection) => {
-        if (!activeBookId) return;
+        if (!activeBookId || !scriptsLoaded) return;
         setShowExportModal(false);
         setIsExporting(true);
         const projectData = books[activeBookId].data;
@@ -992,19 +1093,30 @@ export default function App() {
         } finally {
             setIsExporting(false);
         }
-    }, [books, activeBookId]);
+    }, [books, activeBookId, scriptsLoaded]);
 
 
     //
-    // --- 3. RENDER LOGIC (DOPO TUTTI GLI HOOKS E HANDLERS) ---
+    // --- 3. RENDER LOGIC ---
     //
-
+    if (!db || !auth) {
+        return (
+             <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 text-red-800 p-4">
+                <div className="max-w-2xl text-center">
+                    <AlertTriangle className="mx-auto text-red-500 mb-4" size={64} />
+                    <h1 className="text-4xl font-bold mb-4">Errore di Configurazione Firebase</h1>
+                    <p className="text-lg mb-6">Le chiavi di configurazione Firebase non sono state impostate correttamente nel codice. L'applicazione non può funzionare.</p>
+                </div>
+            </div>
+        );
+    }
+    
     if (isLoading && !user) {
         return <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex justify-center items-center"><Loader2 className="animate-spin text-blue-500" size={64} /></div>;
     }
 
     if (!user) {
-        return <AuthScreen />;
+        return <AuthScreen auth={auth} />;
     }
 
     if (!activeBookId) {
@@ -1024,6 +1136,9 @@ export default function App() {
 
     const editorItem = selectedItem ? {
         type: selectedItem.type,
+        // --- NUOVO: Aggiungo gli indici all'item per passarlo alla modalità concentrazione ---
+        chapterIndex: selectedItem.chapterIndex,
+        paragraphIndex: selectedItem.paragraphIndex,
         data: selectedItem.type === 'chapter' ? activeBookData.chapters[selectedItem.index]
             : selectedItem.type === 'paragraph' ? activeBookData.chapters[selectedItem.chapterIndex]?.paragraphs[selectedItem.paragraphIndex]
             : selectedItem.type === 'character' ? activeBookData.characters[selectedItem.index]
@@ -1032,31 +1147,41 @@ export default function App() {
 
     const currentParagraphStyle = (selectedItem?.type === 'paragraph' && editorItem?.data) || { font: 'Arial', align: 'left' };
 
-    if (isConcentrationMode) {
+    // --- MODIFICA: Logica di rendering per la nuova modalità concentrazione ---
+    if (concentrationModeItem) {
         return (
-            <div className="bg-white dark:bg-black text-black dark:text-white min-h-screen w-screen p-8 md:p-16 lg:p-24 font-serif">
-                <button onClick={() => setIsConcentrationMode(false)} className="fixed top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white z-50"> <Smartphone size={24} /> </button>
-                <div className="max-w-3xl mx-auto">
-                    {activeBookData.chapters.map((chapter, cIndex) => (
-                        <div key={chapter.id} className="mb-12">
-                            <h2 className="text-4xl font-bold mb-6 border-b border-gray-300 dark:border-gray-700 pb-2">{`${cIndex + 1}. ${chapter.title}`}</h2>
-                            {chapter.paragraphs.map((p, pIndex) => (
-                                <div key={p.id} className="mb-8">
-                                    <h3 className="text-2xl font-semibold mb-4">{p.title && `${cIndex + 1}.${pIndex + 1} ${p.title}`}</h3>
-                                    <div className="text-xl leading-relaxed prose dark:prose-invert" style={{ fontFamily: p.font, textAlign: p.align }} dangerouslySetInnerHTML={{ __html: p.content }} />
-                                </div>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-            </div>
+            <ConcentrationEditor
+                item={concentrationModeItem}
+                onUpdate={handleUpdateConcentrationItem}
+                onExit={() => setConcentrationModeItem(null)}
+                onFontChange={handleConcentrationFontChange}
+                onAlignChange={handleConcentrationAlignChange}
+            />
         );
     }
     
     return (
         <div className="flex h-screen bg-white dark:bg-gray-950 text-gray-900 dark:text-gray-100 font-sans">
             <ExportModal show={showExportModal} onClose={() => setShowExportModal(false)} chapters={activeBookData.chapters} onExport={exportToPdf} />
-            <Sidebar projectData={activeBookData} onSelect={setSelectedItem} selectedItem={selectedItem} activeTab={activeTab} setActiveTab={setActiveTab} onAddChapter={addChapter} onAddParagraphToChapter={addParagraph} onAddCharacter={addCharacter} onAddPlace={addPlace} onDragStart={(e, params) => dragItem.current = params} onDragOver={(e) => e.preventDefault()} onDrop={(e, params) => handleDragDrop(e, params)} onDragEnd={() => dragItem.current = null} onRemoveChapter={removeChapter} onRemoveParagraph={removeParagraph} onRemoveCharacter={removeCharacter} onRemovePlace={removePlace} />
+            <Sidebar 
+                projectData={activeBookData} 
+                onSelect={setSelectedItem} 
+                selectedItem={selectedItem} 
+                activeTab={activeTab} 
+                setActiveTab={setActiveTab} 
+                onAddChapter={addChapter} 
+                onAddParagraphToChapter={addParagraph} 
+                onAddCharacter={addCharacter} 
+                onAddPlace={addPlace} 
+                onDragStart={(e, params) => dragItem.current = params} 
+                onDragOver={(e) => e.preventDefault()} 
+                onDrop={(e, params) => handleDragDrop(e, params)} 
+                onDragEnd={() => dragItem.current = null} 
+                onRemoveChapter={removeChapter} 
+                onRemoveParagraph={removeParagraph} 
+                onRemoveCharacter={removeCharacter} 
+                onRemovePlace={removePlace} 
+            />
             <div className="flex-1 flex flex-col">
                 <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <button onClick={handleGoToLobby} title="Torna alla scelta dei libri" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700">
@@ -1067,16 +1192,26 @@ export default function App() {
                         {books[activeBookId].title}
                     </div>
                     <div className="flex items-center space-x-2 md:space-x-4">
-                        <button onClick={() => setShowExportModal(true)} disabled={!scriptsLoaded || isExporting} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                         <button onClick={() => setShowExportModal(true)} disabled={!scriptsLoaded || isExporting} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
                             <FileDown size={20} /> <span className="hidden md:inline">{isExporting ? 'Esportazione...' : (scriptsLoaded ? 'Esporta PDF' : 'Caricamento...')}</span>
-                        </button>
-                        <button onClick={() => setIsConcentrationMode(true)} className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700">
-                            <Monitor size={20} /> <span className="hidden md:inline">Concentrazione</span>
                         </button>
                     </div>
                 </div>
-                <Toolbar onFontChange={handleFontChange} onAlignChange={handleAlignChange} currentFont={currentParagraphStyle.font} currentAlign={currentParagraphStyle.align} selectedItem={selectedItem} />
-                <Editor item={editorItem} projectData={activeBookData} onUpdate={handleUpdateSelectedItem} onAddParagraph={() => addParagraph(selectedItem.index)} onLinkChange={handleLinkChange} />
+                <Toolbar 
+                    onFontChange={handleFontChange} 
+                    onAlignChange={handleAlignChange} 
+                    currentFont={currentParagraphStyle.font} 
+                    currentAlign={currentParagraphStyle.align} 
+                    isParagraphSelected={selectedItem?.type === 'paragraph'}
+                />
+                <Editor 
+                    item={editorItem} 
+                    projectData={activeBookData} 
+                    onUpdate={handleUpdateSelectedItem} 
+                    onAddParagraph={() => addParagraph(selectedItem.index)} 
+                    onLinkChange={handleLinkChange}
+                    onEnterConcentrationMode={setConcentrationModeItem} 
+                />
             </div>
         </div>
     );
