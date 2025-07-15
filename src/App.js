@@ -16,6 +16,7 @@ const firebaseConfig = {
     measurementId: "G-DLC0JG4NSL"
 };
 
+
 // --- ERROR COMPONENT FOR FIREBASE CONFIG ---
 const FirebaseConfigError = () => {
     // Questo componente viene mostrato se la chiave API è un segnaposto.
