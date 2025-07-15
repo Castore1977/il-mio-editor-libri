@@ -226,7 +226,6 @@ const BookLobby = ({ books, onSelectBook, onCreateBook, onDeleteBook, onExportAl
     );
 };
 
-// --- MODIFICA: TimelineView ora è un componente a sé stante per la modalità a schermo intero ---
 const TimelineView = ({ chapters, onSelectParagraph, onExit }) => {
     const allParagraphs = chapters.flatMap(c => c.paragraphs);
     const validParagraphs = allParagraphs.filter(p => p.startDate && p.endDate && parseDate(p.startDate) && parseDate(p.endDate));
@@ -561,23 +560,36 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
     );
 };
 
-const Toolbar = ({ onFontChange, onAlignChange, currentFont, currentAlign, isParagraphSelected }) => {
+// --- MODIFICA: Toolbar ora accetta una prop 'variant' per cambiare tema ---
+const Toolbar = ({ onFontChange, onAlignChange, currentFont, currentAlign, isParagraphSelected, variant = 'default' }) => {
     const fonts = ['Arial', 'Verdana', 'Times New Roman', 'Georgia', 'Courier New', 'Comic Sans MS'];
     const applyStyle = (command) => document.execCommand(command, false, null);
 
+    const isDark = variant === 'dark';
+
+    const containerStyle = isDark ? 'bg-black border-b border-gray-800' : 'bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700';
+    const buttonStyle = isDark ? 'text-gray-400 hover:bg-gray-700 hover:text-white' : 'hover:bg-gray-200 dark:hover:bg-gray-700';
+    const activeButtonStyle = isDark ? 'bg-gray-700 text-white' : 'bg-blue-200 dark:bg-blue-800';
+    const selectStyle = isDark ? 'bg-black text-gray-300 hover:bg-gray-700' : 'bg-transparent dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700';
+    const separatorStyle = isDark ? 'border-gray-700' : 'border-gray-300 dark:border-gray-600';
+
     return (
-        <div className="p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center space-x-2 flex-wrap justify-center">
-            <button onClick={() => applyStyle('bold')} disabled={!isParagraphSelected} className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"><Bold size={20} /></button>
-            <button onClick={() => applyStyle('italic')} disabled={!isParagraphSelected} className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"><Italic size={20} /></button>
-            <button onClick={() => applyStyle('underline')} disabled={!isParagraphSelected} className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"><Underline size={20} /></button>
-            <div className="h-6 border-l border-gray-300 dark:border-gray-600 mx-2"></div>
-            <select onChange={(e) => onFontChange(e.target.value)} value={currentFont} disabled={!isParagraphSelected} className="p-2 rounded bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none disabled:opacity-50 dark:bg-gray-800">
+        <div className={`p-2 flex items-center space-x-2 flex-wrap justify-center ${containerStyle}`}>
+            <button onClick={() => applyStyle('bold')} disabled={!isParagraphSelected} className={`p-2 rounded disabled:opacity-50 ${buttonStyle}`}><Bold size={20} /></button>
+            <button onClick={() => applyStyle('italic')} disabled={!isParagraphSelected} className={`p-2 rounded disabled:opacity-50 ${buttonStyle}`}><Italic size={20} /></button>
+            <button onClick={() => applyStyle('underline')} disabled={!isParagraphSelected} className={`p-2 rounded disabled:opacity-50 ${buttonStyle}`}><Underline size={20} /></button>
+            
+            <div className={`h-6 border-l ${separatorStyle} mx-2`}></div>
+            
+            <select onChange={(e) => onFontChange(e.target.value)} value={currentFont} disabled={!isParagraphSelected} className={`p-2 rounded focus:outline-none disabled:opacity-50 ${selectStyle}`}>
                 {fonts.map(font => <option key={font} value={font}>{font}</option>)}
             </select>
-            <div className="h-6 border-l border-gray-300 dark:border-gray-600 mx-2"></div>
-            <button onClick={() => onAlignChange('left')} disabled={!isParagraphSelected} className={`p-2 rounded ${currentAlign === 'left' ? 'bg-blue-200 dark:bg-blue-800' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} disabled:opacity-50`}><AlignLeft size={20} /></button>
-            <button onClick={() => onAlignChange('center')} disabled={!isParagraphSelected} className={`p-2 rounded ${currentAlign === 'center' ? 'bg-blue-200 dark:bg-blue-800' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} disabled:opacity-50`}><AlignCenter size={20} /></button>
-            <button onClick={() => onAlignChange('right')} disabled={!isParagraphSelected} className={`p-2 rounded ${currentAlign === 'right' ? 'bg-blue-200 dark:bg-blue-800' : 'hover:bg-gray-200 dark:hover:bg-gray-700'} disabled:opacity-50`}><AlignRight size={20} /></button>
+            
+            <div className={`h-6 border-l ${separatorStyle} mx-2`}></div>
+            
+            <button onClick={() => onAlignChange('left')} disabled={!isParagraphSelected} className={`p-2 rounded ${currentAlign === 'left' ? activeButtonStyle : buttonStyle} disabled:opacity-50`}><AlignLeft size={20} /></button>
+            <button onClick={() => onAlignChange('center')} disabled={!isParagraphSelected} className={`p-2 rounded ${currentAlign === 'center' ? activeButtonStyle : buttonStyle} disabled:opacity-50`}><AlignCenter size={20} /></button>
+            <button onClick={() => onAlignChange('right')} disabled={!isParagraphSelected} className={`p-2 rounded ${currentAlign === 'right' ? activeButtonStyle : buttonStyle} disabled:opacity-50`}><AlignRight size={20} /></button>
         </div>
     );
 };
@@ -656,6 +668,7 @@ const ExportModal = ({ show, onClose, chapters, onExport }) => {
     );
 };
 
+// --- MODIFICA: Stile del componente ConcentrationEditor aggiornato per il tema scuro ---
 const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChange }) => {
     const contentRef = useRef(null);
     const scrollContainerRef = useRef(null);
@@ -715,9 +728,10 @@ const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChan
     };
 
     return (
-        <div className="fixed inset-0 bg-white dark:bg-black z-50 flex flex-col">
+        <div className="fixed inset-0 bg-black z-50 flex flex-col">
             <div className="flex-shrink-0">
                  <Toolbar 
+                    variant="dark"
                     onFontChange={handleLocalFontChange} 
                     onAlignChange={handleLocalAlignChange} 
                     currentFont={currentData.font} 
@@ -730,18 +744,18 @@ const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChan
                 className="flex-1 overflow-y-auto flex justify-center"
             >
                  <div className="max-w-3xl w-full pt-16 pb-[50vh]"> 
-                    <h1 className="text-3xl font-bold mb-4 text-gray-700 dark:text-gray-300">{currentData.title}</h1>
+                    <h1 className="text-3xl font-bold mb-4 text-gray-200">{currentData.title}</h1>
                     <div
                         ref={contentRef}
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={handleBlur}
-                        className="text-xl leading-relaxed prose dark:prose-invert max-w-none w-full focus:outline-none"
+                        className="text-xl leading-relaxed prose prose-invert max-w-none w-full focus:outline-none"
                         style={{ fontFamily: currentData.font, textAlign: currentData.align }}
                     />
                 </div>
             </div>
-            <button onClick={onExit} className="absolute top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white p-2 rounded-full bg-gray-200 dark:bg-gray-800">
+            <button onClick={onExit} className="absolute top-4 right-4 text-gray-400 hover:text-white p-2 rounded-full bg-gray-800 hover:bg-gray-700">
                 <X size={24} />
             </button>
         </div>
@@ -763,7 +777,6 @@ export default function App() {
     const [scriptsLoaded, setScriptsLoaded] = useState(false);
     const [bookToDelete, setBookToDelete] = useState(null);
     const [pendingImportData, setPendingImportData] = useState(null);
-    // --- NUOVO: Stato per la modalità timeline ---
     const [isTimelineMode, setIsTimelineMode] = useState(false);
     const dragItem = useRef(null);
 
@@ -1147,11 +1160,10 @@ export default function App() {
         }
     }, [books, activeBookId, scriptsLoaded]);
 
-    // --- NUOVO: Handler per aprire un paragrafo dalla timeline ---
     const handleSelectParagraphFromTimeline = useCallback((chapterIndex, paragraphIndex) => {
-        setIsTimelineMode(false); // Chiudi la timeline
-        setSelectedItem({ type: 'paragraph', chapterIndex, paragraphIndex }); // Seleziona il paragrafo
-        setActiveTab('index'); // Assicurati che il tab dell'indice sia attivo
+        setIsTimelineMode(false); 
+        setSelectedItem({ type: 'paragraph', chapterIndex, paragraphIndex }); 
+        setActiveTab('index'); 
     }, []);
 
 
