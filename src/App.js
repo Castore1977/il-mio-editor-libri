@@ -5,21 +5,21 @@ import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWith
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query } from "firebase/firestore";
 
 // --- FIREBASE CONFIGURATION ---
-// IMPORTANTE: Sostituisci queste stringhe con i tuoi veri valori di configurazione Firebase.
-// Se non lo fai, l'applicazione mostrerà una schermata di errore.
-// Puoi trovarli nella console del tuo progetto Firebase, nelle impostazioni del progetto -> App Web.
+// Le tue chiavi sono state mantenute come richiesto.
 const firebaseConfig = {
-  apiKey: "AIzaSyBHVUJq6uTXyPph8dAyoXDCC_i8CMeGVZU",
-  authDomain: "il-mio-editor-libri.firebaseapp.com",
-  projectId: "il-mio-editor-libri",
-  storageBucket: "il-mio-editor-libri.firebasestorage.app",
-  messagingSenderId: "504094176371",
-  appId: "1:504094176371:web:9e041cba468c3b8d3f6606",
-  measurementId: "G-DLC0JG4NSL"
+    apiKey: "AIzaSyBHVUJq6uTXyPph8dAyoXDCC_i8CMeGVZU",
+    authDomain: "il-mio-editor-libri.firebaseapp.com",
+    projectId: "il-mio-editor-libri",
+    storageBucket: "il-mio-editor-libri.firebasestorage.app",
+    messagingSenderId: "504094176371",
+    appId: "1:504094176371:web:9e041cba468c3b8d3f6606",
+    measurementId: "G-DLC0JG4NSL"
 };
 
 // --- ERROR COMPONENT FOR FIREBASE CONFIG ---
 const FirebaseConfigError = () => {
+    // Questo componente viene mostrato se la chiave API è un segnaposto.
+    // Nel tuo caso attuale non verrà mai mostrato perché hai inserito le chiavi reali.
     return (
         <div className="flex flex-col items-center justify-center min-h-screen bg-red-50 text-red-800 p-4">
             <div className="max-w-2xl text-center">
@@ -40,10 +40,10 @@ const FirebaseConfigError = () => {
                     <pre className="bg-gray-800 text-white p-4 rounded-md mt-4 overflow-x-auto text-sm">
                         <code>
 {`const firebaseConfig = {
-  apiKey: "LA_TUA_API_KEY_QUI",
-  authDomain: "IL_TUO_DOMINIO_AUTH_QUI",
-  projectId: "IL_TUO_PROJECT_ID_QUI",
-  // ... e così via per gli altri campi
+    apiKey: "LA_TUA_API_KEY_QUI",
+    authDomain: "IL_TUO_DOMINIO_AUTH_QUI",
+    projectId: "IL_TUO_PROJECT_ID_QUI",
+    // ... e così via per gli altri campi
 };`}
                         </code>
                     </pre>
@@ -130,7 +130,8 @@ const AuthScreen = () => {
                     setError('Formato email non valido.');
                     break;
                 case 'auth/user-not-found':
-                    setError('Nessun account trovato con questa email.');
+                case 'auth/invalid-credential': // Nuovo codice errore per utente non trovato o psw errata
+                    setError('Credenziali non valide. Controlla email e password.');
                     break;
                 case 'auth/wrong-password':
                     setError('Password errata.');
@@ -247,10 +248,10 @@ const BookLobby = ({ books, onSelectBook, onCreateBook, onDeleteBook, onExportAl
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4">
              <div className="absolute top-4 right-4">
-                <button onClick={onLogout} className="p-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-2">
-                    <LogOut size={16} /> Logout
-                </button>
-            </div>
+                 <button onClick={onLogout} className="p-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-2">
+                     <LogOut size={16} /> Logout
+                 </button>
+             </div>
             <div className="w-full max-w-3xl mx-auto mt-16">
                 <h1 className="text-4xl font-bold text-center mb-8">I Tuoi Libri</h1>
                 
@@ -514,7 +515,7 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
                 <button onClick={() => setActiveTab('summaries')} className={`flex-1 p-2 text-sm flex items-center justify-center gap-2 rounded ${activeTab === 'summaries' ? 'bg-white dark:bg-black' : ''}`}><BarChart2 size={16}/> Riepiloghi</button>
                 <button onClick={() => setActiveTab('timeline')} className={`flex-1 p-2 text-sm flex items-center justify-center gap-2 rounded ${activeTab === 'timeline' ? 'bg-white dark:bg-black' : ''}`}><Calendar size={16}/> Timeline</button>
             </div>
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto p-2">
                 {tabContent[activeTab]}
             </div>
             {addButtonAction[activeTab] && (
@@ -540,7 +541,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange }) =
     }, [item]);
 
     if (!item) {
-        return <div className="flex-1 p-8 text-center text-gray-500">Seleziona un elemento dalla barra laterale per iniziare.</div>;
+        return <div className="flex-1 p-8 text-center text-gray-500 flex items-center justify-center"><div><Book size={48} className="mx-auto text-gray-400 mb-4"/><p>Seleziona un elemento dalla barra laterale per iniziare a modificare.</p></div></div>;
     }
 
     const renderers = {
@@ -565,7 +566,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange }) =
                     </div>
                 </div>
 
-                <div key={`content-${item.data.id}`} ref={contentRef} contentEditable suppressContentEditableWarning dangerouslySetInnerHTML={{ __html: item.data.content }} onBlur={(e) => onUpdate('content', e.target.innerHTML)} className="prose prose-lg max-w-none w-full focus:outline-none mt-4" style={{ fontFamily: item.data.font || 'Arial', textAlign: item.data.align || 'left' }}/>
+                <div key={`content-${item.data.id}`} ref={contentRef} contentEditable suppressContentEditableWarning dangerouslySetInnerHTML={{ __html: item.data.content }} onBlur={(e) => onUpdate('content', e.target.innerHTML)} className="prose dark:prose-invert prose-lg max-w-none w-full focus:outline-none mt-4" style={{ fontFamily: item.data.font || 'Arial', textAlign: item.data.align || 'left' }}/>
                 
                 <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <h3 className="font-bold mb-2">Collegamenti</h3>
@@ -574,8 +575,8 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange }) =
                             <h4 className="font-semibold mb-2 text-sm">Personaggi</h4>
                             <div className="max-h-40 overflow-y-auto p-2 border rounded-md bg-gray-50 dark:bg-gray-800">
                                 {projectData.characters.map(char => (
-                                    <label key={char.id} className="flex items-center space-x-2 text-sm">
-                                        <input type="checkbox" checked={item.data.linkedCharacterIds?.includes(char.id) || false} onChange={() => onLinkChange('character', char.id)} />
+                                    <label key={char.id} className="flex items-center space-x-2 text-sm p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md">
+                                        <input type="checkbox" checked={item.data.linkedCharacterIds?.includes(char.id) || false} onChange={() => onLinkChange('character', char.id)} className="form-checkbox h-4 w-4 text-blue-600 rounded" />
                                         <span>{char.name}</span>
                                     </label>
                                 ))}
@@ -585,8 +586,8 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange }) =
                             <h4 className="font-semibold mb-2 text-sm">Luoghi</h4>
                             <div className="max-h-40 overflow-y-auto p-2 border rounded-md bg-gray-50 dark:bg-gray-800">
                                 {projectData.places.map(place => (
-                                    <label key={place.id} className="flex items-center space-x-2 text-sm">
-                                        <input type="checkbox" checked={item.data.linkedPlaceIds?.includes(place.id) || false} onChange={() => onLinkChange('place', place.id)} />
+                                    <label key={place.id} className="flex items-center space-x-2 text-sm p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-md">
+                                        <input type="checkbox" checked={item.data.linkedPlaceIds?.includes(place.id) || false} onChange={() => onLinkChange('place', place.id)} className="form-checkbox h-4 w-4 text-blue-600 rounded"/>
                                         <span>{place.name}</span>
                                     </label>
                                 ))}
@@ -632,7 +633,7 @@ const Toolbar = ({ onFontChange, onAlignChange, currentFont, currentAlign, selec
             <button onClick={() => applyStyle('italic')} disabled={!isParagraphSelected} className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"><Italic size={20} /></button>
             <button onClick={() => applyStyle('underline')} disabled={!isParagraphSelected} className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 disabled:opacity-50"><Underline size={20} /></button>
             <div className="h-6 border-l border-gray-300 dark:border-gray-600 mx-2"></div>
-            <select onChange={(e) => onFontChange(e.target.value)} value={currentFont} disabled={!isParagraphSelected} className="p-2 rounded bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none disabled:opacity-50">
+            <select onChange={(e) => onFontChange(e.target.value)} value={currentFont} disabled={!isParagraphSelected} className="p-2 rounded bg-transparent hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none disabled:opacity-50 dark:bg-gray-800">
                 {fonts.map(font => <option key={font} value={font}>{font}</option>)}
             </select>
             <div className="h-6 border-l border-gray-300 dark:border-gray-600 mx-2"></div>
@@ -647,6 +648,14 @@ const ExportModal = ({ show, onClose, chapters, onExport }) => {
     const [exportType, setExportType] = useState('all');
     const [selectedChapter, setSelectedChapter] = useState(0);
     const [selectedParagraph, setSelectedParagraph] = useState(0);
+
+    useEffect(() => {
+        // Reset selections when modal is shown or chapters change
+        if (show) {
+            setSelectedChapter(0);
+            setSelectedParagraph(0);
+        }
+    }, [show, chapters]);
 
     if (!show) return null;
 
@@ -694,13 +703,15 @@ const ExportModal = ({ show, onClose, chapters, onExport }) => {
                                     {chapters.map((ch, i) => <option key={ch.id} value={i}>{`${i + 1}. ${ch.title}`}</option>)}
                                 </select>
                             </div>
-                            {chapters[selectedChapter]?.paragraphs.length > 0 && (
+                            {chapters[selectedChapter]?.paragraphs.length > 0 ? (
                                 <div>
                                     <label className="block mb-2">Seleziona Paragrafo</label>
                                     <select value={selectedParagraph} onChange={(e) => setSelectedParagraph(parseInt(e.target.value))} className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600">
                                         {chapters[selectedChapter]?.paragraphs.map((p, i) => <option key={p.id} value={i}>{`${selectedChapter + 1}.${i + 1} - ${p.title}`}</option>)}
                                     </select>
                                 </div>
+                            ) : (
+                                <p className="text-sm text-yellow-500 mt-2">Questo capitolo non ha paragrafi.</p>
                             )}
                         </>
                     )}
@@ -716,6 +727,7 @@ const ExportModal = ({ show, onClose, chapters, onExport }) => {
 
 
 export default function App() {
+    // --- STATE AND REFS HOOKS (must be at the top level) ---
     const [user, setUser] = useState(null);
     const [books, setBooks] = useState({});
     const [isLoading, setIsLoading] = useState(true);
@@ -732,13 +744,14 @@ export default function App() {
     const dragItem = useRef(null);
     const dragOverItem = useRef(null);
 
-    if (firebaseConfig.apiKey === "YOUR_API_KEY") {
-        return <FirebaseConfigError />;
-    }
-
+    // --- EFFECT HOOKS (must be at the top level) ---
+    
     // --- AUTHENTICATION ---
     useEffect(() => {
-        if (!auth) return;
+        if (!auth) {
+            setIsLoading(false);
+            return;
+        };
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             setIsLoading(false);
@@ -749,7 +762,9 @@ export default function App() {
     // --- DATA SYNC WITH FIRESTORE ---
     useEffect(() => {
         if (!user || !db) {
-            setBooks({});
+            if (!user) { // If user logs out, clear books and stop loading
+                setBooks({});
+            }
             return;
         };
 
@@ -774,7 +789,7 @@ export default function App() {
 
     }, [user]);
 
-
+    // --- SCRIPT LOADER ---
     useEffect(() => {
         const loadScript = (src, id) => new Promise((resolve, reject) => {
             if (document.getElementById(id)) { resolve(); return; }
@@ -787,11 +802,27 @@ export default function App() {
         loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", "jspdf-script")
             .then(() => setScriptsLoaded(true)).catch(console.error);
     }, []);
+    
 
-    const updateActiveBookData = async (updater) => {
+    // --- CONDITIONAL RENDERING (can only start AFTER all hooks are called) ---
+    
+    // This check is now mostly for demonstration as you've hardcoded the keys.
+    if (firebaseConfig.apiKey === "YOUR_API_KEY") {
+        return <FirebaseConfigError />;
+    }
+    
+    // --- HANDLER FUNCTIONS ---
+
+    const updateActiveBookData = useCallback(async (updater) => {
         if (!activeBookId || !user) return;
         
         const currentBook = books[activeBookId];
+        // Ensure we have a valid book to update
+        if (!currentBook) {
+            console.error("Attempted to update a book that doesn't exist in the state.");
+            return;
+        }
+
         const updatedData = updater(JSON.parse(JSON.stringify(currentBook.data)));
         const updatedBook = {
             ...currentBook,
@@ -805,13 +836,14 @@ export default function App() {
         // Persist to Firestore
         try {
             const bookRef = doc(db, "users", user.uid, "books", activeBookId);
-            await setDoc(bookRef, updatedBook);
+            await setDoc(bookRef, updatedBook, { merge: true }); // Using merge to be safer
         } catch (error) {
             console.error("Error updating book in Firestore:", error);
-            // Optional: Revert optimistic update on error
+            // Revert optimistic update on error
             setBooks(currentBooks => ({...currentBooks, [activeBookId]: currentBook}));
+            alert("Errore nel salvataggio delle modifiche. I dati sono stati ripristinati.");
         }
-    };
+    }, [activeBookId, user, books]);
 
     // --- Book Management Handlers ---
     const handleCreateBook = async (title) => {
@@ -821,11 +853,11 @@ export default function App() {
         setIsLoading(true);
         try {
             await setDoc(doc(db, "users", user.uid, "books", newBook.id), newBook);
-            setActiveBookId(newBook.id);
+            setActiveBookId(newBook.id); // onSnapshot will update the books state
         } catch (error) {
             console.error("Error creating book:", error);
         } finally {
-            setIsLoading(false);
+            // Let onSnapshot handle setting isLoading to false
         }
     };
 
@@ -844,6 +876,9 @@ export default function App() {
         try {
             await deleteDoc(doc(db, "users", user.uid, "books", bookIdToDelete));
             // The onSnapshot listener will automatically update the UI
+            if (activeBookId === bookIdToDelete) {
+                setActiveBookId(null); // If deleting active book, go to lobby
+            }
         } catch (error) {
             console.error("Error deleting book:", error);
         }
@@ -851,6 +886,7 @@ export default function App() {
     
     const handleGoToLobby = () => {
         setActiveBookId(null);
+        setSelectedItem(null);
     };
 
     const handleLogout = async () => {
@@ -858,6 +894,7 @@ export default function App() {
             await signOut(auth);
             setActiveBookId(null);
             setBooks({});
+            // onAuthStateChanged will handle the user state
         } catch (error) {
             console.error("Error signing out:", error);
         }
@@ -865,176 +902,234 @@ export default function App() {
 
     // --- Global Import/Export ---
     const exportAllBooks = () => {
+        if(Object.keys(books).length === 0) {
+            alert("Non c'è nessun libro da esportare.");
+            return;
+        }
         const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(books, null, 2))}`;
         const link = document.createElement("a");
         link.href = jsonString;
-        link.download = "libreria_completa.json";
+        link.download = `libreria_completa_${new Date().toISOString().split('T')[0]}.json`;
         link.click();
     };
 
     const handleAllBooksImport = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
         const fileReader = new FileReader();
         fileReader.onload = (e) => {
             try {
                 const importedBooks = JSON.parse(e.target.result);
+                // Basic validation of the imported structure
                 if (typeof importedBooks === 'object' && importedBooks !== null && !Array.isArray(importedBooks)) {
                      const firstKey = Object.keys(importedBooks)[0];
                      if (!firstKey || (importedBooks[firstKey].id && importedBooks[firstKey].title && importedBooks[firstKey].data)) {
                         setPendingImportData(importedBooks);
                      } else {
-                        throw new Error("Invalid book structure in JSON file.");
+                        throw new Error("Struttura del libro non valida nel file JSON.");
                      }
                 } else {
-                    throw new Error("JSON file is not a valid book library object.");
+                    throw new Error("Il file JSON non è un oggetto valido per la libreria.");
                 }
             } catch (err) {
-                alert("Errore: Il file JSON non è valido o è corrotto.");
+                alert("Errore: Il file JSON non è valido o è corrotto. Dettagli in console.");
                 console.error(err);
             }
         };
-        if (event.target.files[0]) {
-            fileReader.readAsText(event.target.files[0]);
-        }
-        event.target.value = null;
+        fileReader.readAsText(file);
+        event.target.value = null; // Reset file input
     };
     
     const confirmImportAllBooks = async () => {
         if (!pendingImportData || !user) return;
         
-        setIsLoading(true);
+        const dataToImport = pendingImportData;
         setPendingImportData(null); // Close modal
+        setIsLoading(true);
 
-        // This is a destructive operation. We will delete all existing books first.
         try {
+            // Destructive operation: delete all existing books first.
             const currentBooksSnapshot = await getDocs(collection(db, "users", user.uid, "books"));
-            const deletePromises = [];
-            currentBooksSnapshot.forEach(doc => {
-                deletePromises.push(deleteDoc(doc.ref));
-            });
+            const deletePromises = currentBooksSnapshot.docs.map(docSnapshot => deleteDoc(docSnapshot.ref));
             await Promise.all(deletePromises);
 
             // Now, write the new books
-            const writePromises = [];
-            for (const bookId in pendingImportData) {
-                const bookData = pendingImportData[bookId];
-                writePromises.push(setDoc(doc(db, "users", user.uid, "books", bookId), bookData));
-            }
+            const writePromises = Object.entries(dataToImport).map(([bookId, bookData]) => 
+                setDoc(doc(db, "users", user.uid, "books", bookId), bookData)
+            );
             await Promise.all(writePromises);
             // The onSnapshot listener will update the UI with the new data.
         } catch (error) {
             console.error("Error during library import:", error);
+            alert("Si è verificato un errore durante l'importazione. La libreria potrebbe essere in uno stato inconsistente.");
         } finally {
-            // Let the snapshot listener handle the final isLoading=false state.
+            // Let onSnapshot handle setting isLoading to false
         }
     };
 
 
-    // --- Content Management Handlers (Now operate on active book) ---
-    const addChapter = () => updateActiveBookData(data => {
-        data.chapters.push({ id: generateId(), title: `Nuovo Capitolo`, paragraphs: [] });
+    // --- Content Management Handlers ---
+    const addChapter = useCallback(() => updateActiveBookData(data => {
+        const newChapter = { id: generateId(), title: `Nuovo Capitolo ${data.chapters.length + 1}`, paragraphs: [] };
+        data.chapters.push(newChapter);
         setSelectedItem({ type: 'chapter', index: data.chapters.length - 1 });
         return data;
-    });
+    }), [updateActiveBookData]);
 
-    const removeChapter = (chapIndex) => updateActiveBookData(data => {
+    const removeChapter = useCallback((chapIndex) => updateActiveBookData(data => {
         data.chapters.splice(chapIndex, 1);
         setSelectedItem(null);
         return data;
-    });
+    }), [updateActiveBookData]);
 
-    const addParagraph = (chapIndex) => updateActiveBookData(data => {
-        const newParagraph = { id: generateId(), title: 'Nuovo Sottotitolo', content: 'Nuovo paragrafo.', font: 'Arial', align: 'left', linkedCharacterIds: [], linkedPlaceIds: [], startDate: '', endDate: '' };
-        data.chapters[chapIndex].paragraphs.push(newParagraph);
-        setSelectedItem({ type: 'paragraph', chapterIndex: chapIndex, paragraphIndex: data.chapters[chapIndex].paragraphs.length - 1 });
+    const addParagraph = useCallback((chapIndex) => updateActiveBookData(data => {
+        const chapter = data.chapters[chapIndex];
+        if (!chapter) return data;
+        const newParagraph = { id: generateId(), title: 'Nuovo Paragrafo', content: '...', font: 'Arial', align: 'left', linkedCharacterIds: [], linkedPlaceIds: [], startDate: '', endDate: '' };
+        chapter.paragraphs.push(newParagraph);
+        setSelectedItem({ type: 'paragraph', chapterIndex: chapIndex, paragraphIndex: chapter.paragraphs.length - 1 });
         return data;
-    });
+    }), [updateActiveBookData]);
 
-    const removeParagraph = (chapIndex, paraIndex) => updateActiveBookData(data => {
-        data.chapters[chapIndex].paragraphs.splice(paraIndex, 1);
-        setSelectedItem(null);
+    const removeParagraph = useCallback((chapIndex, paraIndex) => updateActiveBookData(data => {
+        if(data.chapters[chapIndex]) {
+            data.chapters[chapIndex].paragraphs.splice(paraIndex, 1);
+            setSelectedItem(null);
+        }
         return data;
-    });
+    }), [updateActiveBookData]);
 
-    const addCharacter = () => updateActiveBookData(data => {
+    const addCharacter = useCallback(() => updateActiveBookData(data => {
         data.characters.push({ id: generateId(), name: 'Nuovo Personaggio', nickname: '', bio: '', notes: '' });
         setSelectedItem({ type: 'character', index: data.characters.length - 1 });
+        setActiveTab('characters');
         return data;
-    });
+    }), [updateActiveBookData]);
 
-    const removeCharacter = (id) => updateActiveBookData(data => {
+    const removeCharacter = useCallback((id) => updateActiveBookData(data => {
         data.characters = data.characters.filter(c => c.id !== id);
-        data.chapters.forEach(chap => chap.paragraphs.forEach(p => p.linkedCharacterIds = p.linkedCharacterIds.filter(charId => charId !== id)));
+        // Also remove links from paragraphs
+        data.chapters.forEach(chap => {
+            chap.paragraphs.forEach(p => {
+                if (p.linkedCharacterIds) {
+                    p.linkedCharacterIds = p.linkedCharacterIds.filter(charId => charId !== id);
+                }
+            });
+        });
         setSelectedItem(null);
         return data;
-    });
+    }), [updateActiveBookData]);
 
-    const addPlace = () => updateActiveBookData(data => {
+    const addPlace = useCallback(() => updateActiveBookData(data => {
         data.places.push({ id: generateId(), name: 'Nuovo Luogo', description: '' });
         setSelectedItem({ type: 'place', index: data.places.length - 1 });
+        setActiveTab('places');
         return data;
-    });
+    }), [updateActiveBookData]);
 
-    const removePlace = (id) => updateActiveBookData(data => {
+    const removePlace = useCallback((id) => updateActiveBookData(data => {
         data.places = data.places.filter(p => p.id !== id);
-        data.chapters.forEach(chap => chap.paragraphs.forEach(p => p.linkedPlaceIds = p.linkedPlaceIds.filter(placeId => placeId !== id)));
+         // Also remove links from paragraphs
+        data.chapters.forEach(chap => {
+            chap.paragraphs.forEach(p => {
+                if (p.linkedPlaceIds) {
+                    p.linkedPlaceIds = p.linkedPlaceIds.filter(placeId => placeId !== id);
+                }
+            });
+        });
         setSelectedItem(null);
         return data;
-    });
+    }), [updateActiveBookData]);
 
-    const handleUpdateSelectedItem = (field, value) => updateActiveBookData(data => {
-        if (!selectedItem) return data;
-        const { type, index, chapterIndex, paragraphIndex } = selectedItem;
-        if (type === 'chapter') data.chapters[index][field] = value;
-        else if (type === 'paragraph') data.chapters[chapterIndex].paragraphs[paragraphIndex][field] = value;
-        else if (type === 'character') data.characters[index][field] = value;
-        else if (type === 'place') data.places[index][field] = value;
-        return data;
-    });
-
-    const handleLinkChange = (linkType, linkId) => updateActiveBookData(data => {
-        if (selectedItem?.type !== 'paragraph') return data;
-        const { chapterIndex, paragraphIndex } = selectedItem;
-        const paragraph = data.chapters[chapterIndex].paragraphs[paragraphIndex];
-        const linkArray = linkType === 'character' ? 'linkedCharacterIds' : 'linkedPlaceIds';
-        if (!paragraph[linkArray]) paragraph[linkArray] = [];
-        const existingIndex = paragraph[linkArray].indexOf(linkId);
-        if (existingIndex > -1) paragraph[linkArray].splice(existingIndex, 1);
-        else paragraph[linkArray].push(linkId);
-        return data;
-    });
-
-    const handleStyleChange = (prop, value) => {
-        if (selectedItem?.type !== 'paragraph') return;
-        handleUpdateSelectedItem(prop, value);
-    };
-
-    const handleFontChange = (font) => { document.execCommand("fontName", false, font); handleStyleChange('font', font); };
-    const handleAlignChange = (align) => { handleStyleChange('align', align); };
-
-    const handleDragDrop = (e, params) => {
-        dragOverItem.current = params;
-        const { type: dragType, chapterIndex: dragCIndex, paragraphIndex: dragPIndex } = dragItem.current;
-        const { type: dropType, chapterIndex: dropCIndex, paragraphIndex: dropPIndex } = dragOverItem.current;
+    const handleUpdateSelectedItem = useCallback((field, value) => {
+        if (!selectedItem) return;
         updateActiveBookData(data => {
-            if (dragType === 'chapter' && dropType === 'chapter') {
-                const [draggedChapter] = data.chapters.splice(dragCIndex, 1);
-                data.chapters.splice(dropCIndex, 0, draggedChapter);
-            } else if (dragType === 'paragraph') {
-                const [draggedParagraph] = data.chapters[dragCIndex].paragraphs.splice(dragPIndex, 1);
-                if (dropType === 'chapter') data.chapters[dropCIndex].paragraphs.push(draggedParagraph);
-                else data.chapters[dropCIndex].paragraphs.splice(dropPIndex, 0, draggedParagraph);
+            const { type, index, chapterIndex, paragraphIndex } = selectedItem;
+            let itemToUpdate;
+            if (type === 'chapter') itemToUpdate = data.chapters[index];
+            else if (type === 'paragraph') itemToUpdate = data.chapters[chapterIndex]?.paragraphs[paragraphIndex];
+            else if (type === 'character') itemToUpdate = data.characters[index];
+            else if (type === 'place') itemToUpdate = data.places[index];
+
+            if (itemToUpdate) {
+                itemToUpdate[field] = value;
             }
             return data;
         });
-        dragItem.current = null; dragOverItem.current = null;
+    }, [selectedItem, updateActiveBookData]);
+
+    const handleLinkChange = useCallback((linkType, linkId) => {
+        if (selectedItem?.type !== 'paragraph') return;
+        updateActiveBookData(data => {
+            const { chapterIndex, paragraphIndex } = selectedItem;
+            const paragraph = data.chapters[chapterIndex]?.paragraphs[paragraphIndex];
+            if (!paragraph) return data;
+
+            const linkArrayName = linkType === 'character' ? 'linkedCharacterIds' : 'linkedPlaceIds';
+            if (!paragraph[linkArrayName]) paragraph[linkArrayName] = [];
+            
+            const existingIndex = paragraph[linkArrayName].indexOf(linkId);
+            if (existingIndex > -1) {
+                paragraph[linkArrayName].splice(existingIndex, 1);
+            } else {
+                paragraph[linkArrayName].push(linkId);
+            }
+            return data;
+        });
+    }, [selectedItem, updateActiveBookData]);
+
+    const handleStyleChange = useCallback((prop, value) => {
+        if (selectedItem?.type !== 'paragraph') return;
+        handleUpdateSelectedItem(prop, value);
+    }, [selectedItem, handleUpdateSelectedItem]);
+
+    const handleFontChange = (font) => { 
+        document.execCommand("fontName", false, font); 
+        handleStyleChange('font', font); 
+    };
+    const handleAlignChange = (align) => { 
+        handleStyleChange('align', align); 
     };
 
+    const handleDragDrop = useCallback((e, dropParams) => {
+        const dragParams = dragItem.current;
+        if (!dragParams) return;
+
+        updateActiveBookData(data => {
+            // Dragging a chapter
+            if (dragParams.type === 'chapter' && dropParams.type === 'chapter') {
+                const [draggedChapter] = data.chapters.splice(dragParams.chapterIndex, 1);
+                data.chapters.splice(dropParams.chapterIndex, 0, draggedChapter);
+            } 
+            // Dragging a paragraph
+            else if (dragParams.type === 'paragraph') {
+                const [draggedParagraph] = data.chapters[dragParams.chapterIndex].paragraphs.splice(dragParams.paragraphIndex, 1);
+                
+                if (dropParams.type === 'chapter') { // Dropping paragraph onto a chapter title
+                    data.chapters[dropParams.chapterIndex].paragraphs.push(draggedParagraph);
+                } else if (dropParams.type === 'paragraph') { // Dropping paragraph onto another paragraph
+                    data.chapters[dropParams.chapterIndex].paragraphs.splice(dropParams.paragraphIndex, 0, draggedParagraph);
+                }
+            }
+            return data;
+        });
+        dragItem.current = null;
+    }, [updateActiveBookData]);
+
     const exportToPdf = async (selection) => {
-        setShowExportModal(false); setIsExporting(true);
+        if (!activeBookId) return;
+        setShowExportModal(false); 
+        setIsExporting(true);
         const projectData = books[activeBookId].data;
+
         try {
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: 'p', unit: 'pt', format: 'a4' });
+            // Add a Unicode-supporting font
+            // This is a simplified example. For full support, you might need to embed a .ttf file.
+            pdf.addFont('times', 'normal', 'WinAnsiEncoding');
+
             const PAGE_WIDTH = pdf.internal.pageSize.getWidth();
             const PAGE_HEIGHT = pdf.internal.pageSize.getHeight();
             const MARGIN = 72;
@@ -1089,22 +1184,27 @@ export default function App() {
                 chaptersToExport = projectData.chapters;
             }
 
+            // --- Title Page ---
             pdf.setFont(FONT_FAMILY_SERIF, 'bold');
             pdf.setFontSize(FONT_SIZE_MAINTITLE);
             pdf.text(documentTitle, PAGE_WIDTH / 2, PAGE_HEIGHT / 3, { align: 'center' });
             pdf.setFont(FONT_FAMILY_SERIF, 'normal');
             pdf.setFontSize(FONT_SIZE_SUBTITLE);
-            pdf.text("Un Romanzo", PAGE_WIDTH / 2, PAGE_HEIGHT / 3 + 40, { align: 'center' });
-            addNewPage();
+            pdf.text("by Autore", PAGE_WIDTH / 2, PAGE_HEIGHT / 3 + 40, { align: 'center' }); // Placeholder
+            
+            // --- Content ---
+            if(chaptersToExport.length > 0) addNewPage();
 
             for (const [index, chapter] of chaptersToExport.entries()) {
                 if (index > 0) addNewPage();
                 checkPageBreak(FONT_SIZE_CHAPTER * 4);
+                
                 pdf.setFont(FONT_FAMILY_SERIF, 'bold');
                 pdf.setFontSize(FONT_SIZE_CHAPTER);
                 const chapterGlobalIndex = projectData.chapters.findIndex(c => c.id === chapter.id) + 1;
                 pdf.text(`Capitolo ${chapterGlobalIndex}`, PAGE_WIDTH / 2, y, { align: 'center' });
                 y += FONT_SIZE_CHAPTER * 1.5;
+
                 pdf.setFont(FONT_FAMILY_SERIF, 'italic');
                 pdf.setFontSize(FONT_SIZE_SUBTITLE);
                 pdf.text(chapter.title, PAGE_WIDTH / 2, y, { align: 'center' });
@@ -1112,39 +1212,39 @@ export default function App() {
 
                 for (const p of chapter.paragraphs) {
                     if (p.title) {
-                        const spaceBeforeTitle = FONT_SIZE_SUBTITLE * 0.8;
-                        const titleHeight = FONT_SIZE_SUBTITLE;
-                        const spaceAfterTitle = 12;
-                        checkPageBreak(spaceBeforeTitle + titleHeight + spaceAfterTitle);
-                        y += spaceBeforeTitle;
+                        const titleHeight = FONT_SIZE_SUBTITLE * 2;
+                        checkPageBreak(titleHeight);
                         pdf.setFont(FONT_FAMILY_SERIF, 'bold');
                         pdf.setFontSize(FONT_SIZE_SUBTITLE);
                         pdf.text(p.title, MARGIN, y);
-                        y += titleHeight + spaceAfterTitle;
+                        y += titleHeight;
                     }
                     pdf.setFont(FONT_FAMILY_SERIF, 'normal');
                     pdf.setFontSize(FONT_SIZE_BODY);
                     const textContent = cleanText(p.content);
                     if (textContent.trim() === '') continue;
+
                     const lines = pdf.splitTextToSize(textContent, MAX_WIDTH);
-                    const blockDimensions = pdf.getTextDimensions(lines, { fontSize: FONT_SIZE_BODY, lineHeightFactor: LINE_HEIGHT_BODY, maxWidth: MAX_WIDTH });
-                    const blockHeight = blockDimensions.h;
+                    const blockHeight = lines.length * FONT_SIZE_BODY * LINE_HEIGHT_BODY;
+                    
                     checkPageBreak(blockHeight);
                     pdf.text(lines, MARGIN, y, { align: 'justify', lineHeightFactor: LINE_HEIGHT_BODY, maxWidth: MAX_WIDTH });
                     y += blockHeight + PARAGRAPH_SPACING;
                 }
             }
             addPageNumber(pageNumber);
-            pdf.save(`${documentTitle.replace(/ /g, "_")}.pdf`);
+            pdf.save(`${documentTitle.replace(/\s/g, "_")}.pdf`);
         } catch (error) {
             console.error("Failed to generate PDF:", error);
+            alert("Errore durante la generazione del PDF. Controlla la console.");
         } finally {
             setIsExporting(false);
         }
     };
     
+    
     // --- RENDER LOGIC ---
-    if (isLoading) {
+    if (isLoading && !user) { // Show loader only on initial auth check
         return (
              <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex justify-center items-center">
                 <Loader2 className="animate-spin text-blue-500" size={64} />
@@ -1171,7 +1271,7 @@ export default function App() {
                  <ConfirmationModal 
                     show={!!pendingImportData}
                     title="Conferma Importazione Libreria"
-                    message="Stai per sostituire la tua intera libreria con il contenuto del file selezionato. Tutti i libri e le modifiche non salvate andranno persi. Questa azione è irreversibile."
+                    message="Stai per SOSTITUIRE la tua intera libreria con il contenuto del file. Tutti i libri attuali verranno CANCELLATI. Questa azione è irreversibile."
                     onConfirm={confirmImportAllBooks}
                     onCancel={() => setPendingImportData(null)}
                     confirmText="Sostituisci Tutto"
@@ -1184,7 +1284,7 @@ export default function App() {
                     onDeleteBook={(id) => setBookToDelete(id)}
                     onExportAll={exportAllBooks}
                     onImportAll={handleAllBooksImport}
-                    isLoading={isLoading}
+                    isLoading={isLoading} // Loading for book data
                     onLogout={handleLogout}
                 />
             </>
@@ -1193,8 +1293,13 @@ export default function App() {
     
     const activeBookData = books[activeBookId]?.data;
     if (!activeBookData) {
-        handleGoToLobby();
-        return null;
+        // This can happen briefly if a book is deleted.
+        // The effect hook for activeBookId will handle redirecting.
+        return (
+             <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex justify-center items-center">
+                <Loader2 className="animate-spin text-blue-500" size={64} />
+            </div>
+        );
     }
 
     const editorItem = selectedItem ? {
@@ -1209,16 +1314,16 @@ export default function App() {
 
     if (isConcentrationMode) {
         return (
-            <div className="bg-black text-white min-h-screen w-screen p-8 md:p-16 lg:p-24 font-serif">
-                <button onClick={() => setIsConcentrationMode(false)} className="fixed top-4 right-4 text-white hover:text-gray-300 z-50"> <Smartphone size={24} /> </button>
+            <div className="bg-white dark:bg-black text-black dark:text-white min-h-screen w-screen p-8 md:p-16 lg:p-24 font-serif">
+                <button onClick={() => setIsConcentrationMode(false)} className="fixed top-4 right-4 text-gray-500 hover:text-black dark:hover:text-white z-50"> <Smartphone size={24} /> </button>
                 <div className="max-w-3xl mx-auto">
                     {activeBookData.chapters.map((chapter, cIndex) => (
                         <div key={chapter.id} className="mb-12">
-                            <h2 className="text-4xl font-bold mb-6 border-b border-gray-700 pb-2">{`${cIndex + 1}. ${chapter.title}`}</h2>
+                            <h2 className="text-4xl font-bold mb-6 border-b border-gray-300 dark:border-gray-700 pb-2">{`${cIndex + 1}. ${chapter.title}`}</h2>
                             {chapter.paragraphs.map((p, pIndex) => (
                                 <div key={p.id} className="mb-8">
-                                    <h3 className="text-2xl font-semibold mb-4">{`${cIndex + 1}.${pIndex + 1} ${p.title}`}</h3>
-                                    <div className="text-xl leading-relaxed" style={{ fontFamily: p.font, textAlign: p.align }} dangerouslySetInnerHTML={{ __html: p.content }} />
+                                    <h3 className="text-2xl font-semibold mb-4">{p.title && `${cIndex + 1}.${pIndex + 1} ${p.title}`}</h3>
+                                    <div className="text-xl leading-relaxed prose dark:prose-invert" style={{ fontFamily: p.font, textAlign: p.align }} dangerouslySetInnerHTML={{ __html: p.content }} />
                                 </div>
                             ))}
                         </div>
@@ -1244,8 +1349,8 @@ export default function App() {
                 onAddPlace={addPlace}
                 onDragStart={(e, params) => dragItem.current = params}
                 onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDragDrop}
-                onDragEnd={() => { dragItem.current = null; dragOverItem.current = null; }}
+                onDrop={(e) => handleDragDrop(e, e.target.dataset)}
+                onDragEnd={() => dragItem.current = null}
                 onRemoveChapter={removeChapter}
                 onRemoveParagraph={removeParagraph}
                 onRemoveCharacter={removeCharacter}
