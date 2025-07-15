@@ -226,20 +226,35 @@ const BookLobby = ({ books, onSelectBook, onCreateBook, onDeleteBook, onExportAl
     );
 };
 
-const TimelineView = ({ chapters }) => {
+// --- MODIFICA: TimelineView ora è un componente a sé stante per la modalità a schermo intero ---
+const TimelineView = ({ chapters, onSelectParagraph, onExit }) => {
     const allParagraphs = chapters.flatMap(c => c.paragraphs);
     const validParagraphs = allParagraphs.filter(p => p.startDate && p.endDate && parseDate(p.startDate) && parseDate(p.endDate));
+    
     if (validParagraphs.length === 0) {
-        return <div className="p-4 text-center text-gray-500">Nessun paragrafo con date valide da mostrare nella timeline.</div>;
+        return (
+            <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 flex flex-col items-center justify-center text-gray-500 p-4">
+                 <button onClick={onExit} className="absolute top-4 right-4 p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <X size={24} />
+                </button>
+                <Calendar size={48} className="mb-4"/>
+                <h2 className="text-2xl font-bold mb-2">Timeline Vuota</h2>
+                <p>Nessun paragrafo con date valide da mostrare nella timeline.</p>
+                <p className="text-sm mt-1">Aggiungi una data di inizio e fine a un paragrafo per vederlo qui.</p>
+            </div>
+        );
     }
+
     const allDates = validParagraphs.flatMap(p => [parseDate(p.startDate), parseDate(p.endDate)]);
     const projectStartDate = new Date(Math.min(...allDates));
     const projectEndDate = new Date(Math.max(...allDates));
     projectEndDate.setDate(projectEndDate.getDate() + 1);
     const totalDuration = daysBetween(projectStartDate, projectEndDate);
+
     if (totalDuration <= 0) {
         return <div className="p-4 text-center text-gray-500">La durata del progetto non è valida.</div>;
     }
+
     const monthHeaders = [];
     let currentDate = new Date(projectStartDate);
     while (currentDate <= projectEndDate) {
@@ -255,56 +270,72 @@ const TimelineView = ({ chapters }) => {
         });
         currentDate.setMonth(currentDate.getMonth() + 1);
     }
+
     return (
-        <div className="p-4 space-y-6">
-            <div className="relative h-10 border-b-2 border-gray-300 dark:border-gray-600">
-                {monthHeaders.map((month, index) => (
-                    <div key={index} className="absolute top-0 h-full flex items-center justify-center border-r border-gray-200 dark:border-gray-700" style={{ left: `${month.offset}%`, width: `${month.width}%` }}>
-                        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 truncate px-1">{month.label}</span>
-                    </div>
-                ))}
+        <div className="fixed inset-0 bg-white dark:bg-gray-900 z-50 flex flex-col p-4 sm:p-6 md:p-8">
+            <div className="flex-shrink-0 flex justify-between items-center mb-6">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-100">Timeline del Progetto</h1>
+                <button onClick={onExit} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                    <X size={24} />
+                </button>
             </div>
-            <div className="space-y-4">
-                {chapters.map(chapter => {
-                    const chapterParagraphs = chapter.paragraphs.filter(p => p.startDate && p.endDate && parseDate(p.startDate) && parseDate(p.endDate));
-                    if (chapterParagraphs.length === 0) return null;
-                    const chapterDates = chapterParagraphs.flatMap(p => [parseDate(p.startDate), parseDate(p.endDate)]);
-                    const chapterStartDate = new Date(Math.min(...chapterDates));
-                    const chapterEndDate = new Date(Math.max(...chapterDates));
-                    return (
-                        <div key={chapter.id}>
-                            <h3 className="font-bold mb-2">{chapter.title}</h3>
-                            <p className="text-xs text-gray-500 mb-2">{`Dal ${formatDate(chapterStartDate)} al ${formatDate(chapterEndDate)}`}</p>
-                            <div className="space-y-1">
-                                {chapterParagraphs.map(p => {
-                                    const pStart = parseDate(p.startDate);
-                                    const pEnd = parseDate(p.endDate);
-                                    if (!pStart || !pEnd) return null;
-                                    const offset = (daysBetween(projectStartDate, pStart) / totalDuration) * 100;
-                                    const duration = Math.max(1, daysBetween(pStart, pEnd) + 1);
-                                    const width = (duration / totalDuration) * 100;
-                                    return (
-                                        <div key={p.id} className="w-full h-8 group relative">
-                                            <div className="absolute h-full bg-blue-500 hover:bg-blue-700 rounded-md transition-all" style={{ left: `${offset}%`, width: `${width}%` }}>
-                                                <span className="text-white text-xs font-medium truncate px-2 leading-8">{p.title}</span>
-                                                <div className="absolute bottom-full mb-2 w-max p-2 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                                    {p.title}<br/>
-                                                    {formatDate(pStart)} - {formatDate(pEnd)}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
+            <div className="flex-1 overflow-auto">
+                <div className="space-y-6">
+                    <div className="relative h-10 border-b-2 border-gray-300 dark:border-gray-600">
+                        {monthHeaders.map((month, index) => (
+                            <div key={index} className="absolute top-0 h-full flex items-center justify-center border-r border-gray-200 dark:border-gray-700" style={{ left: `${month.offset}%`, width: `${month.width}%` }}>
+                                <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 truncate px-1">{month.label}</span>
                             </div>
-                        </div>
-                    );
-                })}
+                        ))}
+                    </div>
+                    <div className="space-y-4">
+                        {chapters.map((chapter, cIndex) => {
+                            const chapterParagraphs = chapter.paragraphs.filter(p => p.startDate && p.endDate && parseDate(p.startDate) && parseDate(p.endDate));
+                            if (chapterParagraphs.length === 0) return null;
+                            const chapterDates = chapterParagraphs.flatMap(p => [parseDate(p.startDate), parseDate(p.endDate)]);
+                            const chapterStartDate = new Date(Math.min(...chapterDates));
+                            const chapterEndDate = new Date(Math.max(...chapterDates));
+                            return (
+                                <div key={chapter.id}>
+                                    <h3 className="font-bold mb-2 text-gray-700 dark:text-gray-300">{chapter.title}</h3>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">{`Dal ${formatDate(chapterStartDate)} al ${formatDate(chapterEndDate)}`}</p>
+                                    <div className="space-y-1">
+                                        {chapterParagraphs.map((p, pIndex) => {
+                                            const pStart = parseDate(p.startDate);
+                                            const pEnd = parseDate(p.endDate);
+                                            if (!pStart || !pEnd) return null;
+                                            const offset = (daysBetween(projectStartDate, pStart) / totalDuration) * 100;
+                                            const duration = Math.max(1, daysBetween(pStart, pEnd) + 1);
+                                            const width = (duration / totalDuration) * 100;
+                                            return (
+                                                <div 
+                                                    key={p.id} 
+                                                    className="w-full h-8 group relative"
+                                                    onDoubleClick={() => onSelectParagraph(cIndex, pIndex)}
+                                                >
+                                                    <div className="absolute h-full bg-blue-500 hover:bg-blue-700 rounded-md transition-all cursor-pointer" style={{ left: `${offset}%`, width: `${width}%` }}>
+                                                        <span className="text-white text-xs font-medium truncate px-2 leading-8">{p.title}</span>
+                                                        <div className="absolute bottom-full mb-2 w-max p-2 bg-gray-800 text-white text-xs rounded-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                                            {p.title}<br/>
+                                                            {formatDate(pStart)} - {formatDate(pEnd)}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
             </div>
         </div>
     );
 };
 
-const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddCharacter, onAddPlace, onDragStart, onDragOver, onDrop, onDragEnd, onRemoveChapter, onRemoveParagraph, onAddParagraphToChapter, onRemoveCharacter, onRemovePlace, activeTab, setActiveTab }) => {
+
+const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddCharacter, onAddPlace, onDragStart, onDragOver, onDrop, onDragEnd, onRemoveChapter, onRemoveParagraph, onAddParagraphToChapter, onRemoveCharacter, onRemovePlace, activeTab, setActiveTab, onShowTimeline }) => {
     const renderIndex = () => (
         <>
             {projectData.chapters.map((chapter, cIndex) => (
@@ -397,7 +428,6 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
         characters: renderCharacters(),
         places: renderPlaces(),
         summaries: renderSummaries(),
-        timeline: <TimelineView chapters={projectData.chapters} />
     };
     const addButtonAction = {
         index: onAddChapter,
@@ -416,7 +446,7 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
                 <button onClick={() => setActiveTab('characters')} className={`flex-1 p-2 text-sm flex items-center justify-center gap-2 rounded ${activeTab === 'characters' ? 'bg-white dark:bg-black' : ''}`}><Users size={16}/> Personaggi</button>
                 <button onClick={() => setActiveTab('places')} className={`flex-1 p-2 text-sm flex items-center justify-center gap-2 rounded ${activeTab === 'places' ? 'bg-white dark:bg-black' : ''}`}><MapPin size={16}/> Luoghi</button>
                 <button onClick={() => setActiveTab('summaries')} className={`flex-1 p-2 text-sm flex items-center justify-center gap-2 rounded ${activeTab === 'summaries' ? 'bg-white dark:bg-black' : ''}`}><BarChart2 size={16}/> Riepiloghi</button>
-                <button onClick={() => setActiveTab('timeline')} className={`flex-1 p-2 text-sm flex items-center justify-center gap-2 rounded ${activeTab === 'timeline' ? 'bg-white dark:bg-black' : ''}`}><Calendar size={16}/> Timeline</button>
+                <button onClick={onShowTimeline} className={`flex-1 p-2 text-sm flex items-center justify-center gap-2 rounded ${activeTab === 'timeline' ? 'bg-white dark:bg-black' : ''}`}><Calendar size={16}/> Timeline</button>
             </div>
             <div className="flex-1 overflow-y-auto p-2">
                 {tabContent[activeTab]}
@@ -432,7 +462,6 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
     );
 };
 
-// --- MODIFICA: Layout del componente Editor per avere lo scroll solo sul testo ---
 const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onEnterConcentrationMode }) => {
     const contentRef = useRef(null);
 
@@ -456,9 +485,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
             </div>
         ),
         paragraph: () => (
-            // Contenitore flex verticale che occupa tutta l'altezza disponibile
             <div className="flex flex-col h-full">
-                {/* Sezione superiore (non scorrevole) */}
                 <div className="flex-shrink-0">
                     <div className="flex items-center justify-between mb-4 border-b border-gray-300 dark:border-gray-700 pb-2">
                         <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none"/>
@@ -477,11 +504,9 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                         </div>
                     </div>
                 </div>
-                {/* Area di testo (scorrevole) */}
                 <div className="flex-1 overflow-y-auto py-4">
                     <div key={`content-${item.data.id}`} ref={contentRef} contentEditable suppressContentEditableWarning dangerouslySetInnerHTML={{ __html: item.data.content }} onBlur={(e) => onUpdate('content', e.target.innerHTML)} className="prose dark:prose-invert prose-lg max-w-none w-full focus:outline-none" style={{ fontFamily: item.data.font || 'Arial', textAlign: item.data.align || 'left' }}/>
                 </div>
-                {/* Sezione inferiore (non scorrevole) */}
                 <div className="flex-shrink-0 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <h3 className="font-bold mb-2">Collegamenti</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -738,6 +763,8 @@ export default function App() {
     const [scriptsLoaded, setScriptsLoaded] = useState(false);
     const [bookToDelete, setBookToDelete] = useState(null);
     const [pendingImportData, setPendingImportData] = useState(null);
+    // --- NUOVO: Stato per la modalità timeline ---
+    const [isTimelineMode, setIsTimelineMode] = useState(false);
     const dragItem = useRef(null);
 
     useEffect(() => {
@@ -1120,6 +1147,13 @@ export default function App() {
         }
     }, [books, activeBookId, scriptsLoaded]);
 
+    // --- NUOVO: Handler per aprire un paragrafo dalla timeline ---
+    const handleSelectParagraphFromTimeline = useCallback((chapterIndex, paragraphIndex) => {
+        setIsTimelineMode(false); // Chiudi la timeline
+        setSelectedItem({ type: 'paragraph', chapterIndex, paragraphIndex }); // Seleziona il paragrafo
+        setActiveTab('index'); // Assicurati che il tab dell'indice sia attivo
+    }, []);
+
 
     //
     // --- 3. RENDER LOGIC ---
@@ -1171,6 +1205,16 @@ export default function App() {
 
     const currentParagraphStyle = (selectedItem?.type === 'paragraph' && editorItem?.data) || { font: 'Arial', align: 'left' };
 
+    if (isTimelineMode) {
+        return (
+            <TimelineView 
+                chapters={activeBookData.chapters}
+                onSelectParagraph={handleSelectParagraphFromTimeline}
+                onExit={() => setIsTimelineMode(false)}
+            />
+        );
+    }
+
     if (concentrationModeItem) {
         return (
             <ConcentrationEditor
@@ -1203,7 +1247,8 @@ export default function App() {
                 onRemoveChapter={removeChapter} 
                 onRemoveParagraph={removeParagraph} 
                 onRemoveCharacter={removeCharacter} 
-                onRemovePlace={removePlace} 
+                onRemovePlace={removePlace}
+                onShowTimeline={() => setIsTimelineMode(true)}
             />
             <div className="flex-1 flex flex-col overflow-hidden">
                 <div className="flex-shrink-0 flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
