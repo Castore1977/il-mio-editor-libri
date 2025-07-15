@@ -432,6 +432,7 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
     );
 };
 
+// --- MODIFICA: Layout del componente Editor per avere lo scroll solo sul testo ---
 const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onEnterConcentrationMode }) => {
     const contentRef = useRef(null);
 
@@ -449,31 +450,39 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
 
     const renderers = {
         chapter: () => (
-            <>
+            <div className="flex flex-col h-full">
                 <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Capitolo" className="text-4xl font-bold w-full bg-transparent focus:outline-none mb-8"/>
                 <button onClick={onAddParagraph} className="flex items-center text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"><Plus size={16} className="mr-1" /> Aggiungi Paragrafo</button>
-            </>
+            </div>
         ),
         paragraph: () => (
-            <>
-                <div className="flex items-center justify-between mb-4 border-b border-gray-300 dark:border-gray-700 pb-2">
-                    <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none"/>
-                    <button onClick={() => onEnterConcentrationMode(item)} className="p-2 text-gray-500 hover:text-blue-500" title="Modalità Concentrazione">
-                        <Maximize size={20} />
-                    </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data Inizio</label>
-                        <input type="date" defaultValue={item.data.startDate || ''} onBlur={(e) => onUpdate('startDate', e.target.value)} className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"/>
+            // Contenitore flex verticale che occupa tutta l'altezza disponibile
+            <div className="flex flex-col h-full">
+                {/* Sezione superiore (non scorrevole) */}
+                <div className="flex-shrink-0">
+                    <div className="flex items-center justify-between mb-4 border-b border-gray-300 dark:border-gray-700 pb-2">
+                        <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none"/>
+                        <button onClick={() => onEnterConcentrationMode(item)} className="p-2 text-gray-500 hover:text-blue-500" title="Modalità Concentrazione">
+                            <Maximize size={20} />
+                        </button>
                     </div>
-                     <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data Fine</label>
-                        <input type="date" defaultValue={item.data.endDate || ''} onBlur={(e) => onUpdate('endDate', e.target.value)} className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"/>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 my-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data Inizio</label>
+                            <input type="date" defaultValue={item.data.startDate || ''} onBlur={(e) => onUpdate('startDate', e.target.value)} className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"/>
+                        </div>
+                         <div>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Data Fine</label>
+                            <input type="date" defaultValue={item.data.endDate || ''} onBlur={(e) => onUpdate('endDate', e.target.value)} className="w-full p-2 border rounded-md dark:bg-gray-800 dark:border-gray-600"/>
+                        </div>
                     </div>
                 </div>
-                <div key={`content-${item.data.id}`} ref={contentRef} contentEditable suppressContentEditableWarning dangerouslySetInnerHTML={{ __html: item.data.content }} onBlur={(e) => onUpdate('content', e.target.innerHTML)} className="prose dark:prose-invert prose-lg max-w-none w-full focus:outline-none mt-4" style={{ fontFamily: item.data.font || 'Arial', textAlign: item.data.align || 'left' }}/>
-                <div className="mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+                {/* Area di testo (scorrevole) */}
+                <div className="flex-1 overflow-y-auto py-4">
+                    <div key={`content-${item.data.id}`} ref={contentRef} contentEditable suppressContentEditableWarning dangerouslySetInnerHTML={{ __html: item.data.content }} onBlur={(e) => onUpdate('content', e.target.innerHTML)} className="prose dark:prose-invert prose-lg max-w-none w-full focus:outline-none" style={{ fontFamily: item.data.font || 'Arial', textAlign: item.data.align || 'left' }}/>
+                </div>
+                {/* Sezione inferiore (non scorrevole) */}
+                <div className="flex-shrink-0 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <h3 className="font-bold mb-2">Collegamenti</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -500,27 +509,27 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                         </div>
                     </div>
                 </div>
-            </>
+            </div>
         ),
         character: () => (
-            <>
+             <div className="flex flex-col h-full">
                 <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Personaggio" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-2"/>
                 <input key={`nickname-${item.data.id}`} type="text" defaultValue={item.data.nickname} onBlur={(e) => onUpdate('nickname', e.target.value)} placeholder="Soprannome" className="text-xl italic text-gray-500 w-full bg-transparent focus:outline-none mb-6"/>
                 <textarea key={`bio-${item.data.id}`} defaultValue={item.data.bio} onBlur={(e) => onUpdate('bio', e.target.value)} placeholder="Dati anagrafici" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md mb-4 h-24"/>
-                <textarea key={`notes-${item.data.id}`} defaultValue={item.data.notes} onBlur={(e) => onUpdate('notes', e.target.value)} placeholder="Note libere" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md h-48"/>
-            </>
+                <textarea key={`notes-${item.data.id}`} defaultValue={item.data.notes} onBlur={(e) => onUpdate('notes', e.target.value)} placeholder="Note libere" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1"/>
+            </div>
         ),
         place: () => (
-            <>
+             <div className="flex flex-col h-full">
                 <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Luogo" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-4"/>
-                <textarea key={`desc-${item.data.id}`} defaultValue={item.data.description} onBlur={(e) => onUpdate('description', e.target.value)} placeholder="Descrizione del luogo" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md h-64"/>
-            </>
+                <textarea key={`desc-${item.data.id}`} defaultValue={item.data.description} onBlur={(e) => onUpdate('description', e.target.value)} placeholder="Descrizione del luogo" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1"/>
+            </div>
         )
     };
 
     return (
-        <div className="flex-1 flex flex-col p-8 md:p-12 overflow-y-auto">
-            <div className="max-w-4xl mx-auto w-full">
+        <div className="flex-1 flex flex-col p-8 md:p-12 overflow-y-hidden">
+            <div className="max-w-4xl mx-auto w-full h-full flex flex-col">
                 {renderers[item.type] ? renderers[item.type]() : null}
             </div>
         </div>
@@ -622,14 +631,12 @@ const ExportModal = ({ show, onClose, chapters, onExport }) => {
     );
 };
 
-// --- MODIFICA: Componente ConcentrationEditor aggiornato con la modalità "Typewriter" ---
 const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChange }) => {
     const contentRef = useRef(null);
-    const scrollContainerRef = useRef(null); // Ref per il contenitore scrollabile
+    const scrollContainerRef = useRef(null);
     const [currentData, setCurrentData] = useState(item.data);
 
-    // Funzione per gestire la posizione del cursore e lo scroll
-    const handleCursorPosition = useCallback(() => {
+    const centerCursor = useCallback(() => {
         const selection = window.getSelection();
         if (!selection.rangeCount) return;
 
@@ -637,44 +644,41 @@ const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChan
         const rect = range.getBoundingClientRect();
         const scrollContainer = scrollContainerRef.current;
 
-        // Non fare nulla se il contenitore non esiste o il cursore non è visibile (es. rect a zero)
-        if (!scrollContainer || (rect.width === 0 && rect.height === 0)) return;
+        if (!scrollContainer || (rect.top === 0 && rect.left === 0)) return;
 
         const viewportMidpoint = window.innerHeight / 2;
 
-        // Se la parte inferiore del cursore è sotto il punto centrale, scorri
         if (rect.bottom > viewportMidpoint) {
-            const scrollAmount = rect.bottom - viewportMidpoint;
-            scrollContainer.scrollBy({ top: scrollAmount, behavior: 'smooth' });
+            const newScrollTop = scrollContainer.scrollTop + (rect.bottom - viewportMidpoint);
+            scrollContainer.scrollTo({ top: newScrollTop, behavior: 'smooth' });
         }
-    }, []);
+    }, []); 
 
     useEffect(() => {
         const editor = contentRef.current;
         if (editor) {
-            // Popola l'editor con il contenuto iniziale solo una volta
             if (editor.innerHTML !== currentData.content) {
                editor.innerHTML = currentData.content;
             }
             
-            // Aggiungi event listeners per la modalità typewriter
-            editor.addEventListener('keyup', handleCursorPosition);
-            editor.addEventListener('mouseup', handleCursorPosition);
+            const handleSelectionChange = () => {
+                if (document.activeElement === editor) {
+                    centerCursor();
+                }
+            };
 
-            // Cleanup al unmount del componente
+            document.addEventListener('selectionchange', handleSelectionChange);
+
             return () => {
-                editor.removeEventListener('keyup', handleCursorPosition);
-                editor.removeEventListener('mouseup', handleCursorPosition);
+                document.removeEventListener('selectionchange', handleSelectionChange);
             };
         }
-    }, [handleCursorPosition]); // Esegui solo quando il componente monta e la funzione di callback cambia
+    }, [centerCursor, currentData.content]);
 
     const handleBlur = (e) => {
-        // Salva il contenuto quando l'utente lascia l'area di testo
         onUpdate('content', e.target.innerHTML);
     };
     
-    // Funzioni wrapper per aggiornare lo stato locale e propagare le modifiche alla toolbar
     const handleLocalFontChange = (font) => {
         setCurrentData(prev => ({ ...prev, font }));
         onFontChange(font);
@@ -693,18 +697,15 @@ const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChan
                     onAlignChange={handleLocalAlignChange} 
                     currentFont={currentData.font} 
                     currentAlign={currentData.align}
-                    isParagraphSelected={true} // La toolbar è sempre attiva in questa modalità
+                    isParagraphSelected={true}
                  />
             </div>
-            {/* Contenitore principale che gestisce lo scroll */}
             <div 
                 ref={scrollContainerRef} 
                 className="flex-1 overflow-y-auto flex justify-center"
             >
-                 {/* Wrapper interno con padding per dare spazio allo scroll */}
                  <div className="max-w-3xl w-full pt-16 pb-[50vh]"> 
                     <h1 className="text-3xl font-bold mb-4 text-gray-700 dark:text-gray-300">{currentData.title}</h1>
-                    {/* L'area di testo editabile */}
                     <div
                         ref={contentRef}
                         contentEditable
@@ -1204,8 +1205,8 @@ export default function App() {
                 onRemoveCharacter={removeCharacter} 
                 onRemovePlace={removePlace} 
             />
-            <div className="flex-1 flex flex-col">
-                <div className="flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-shrink-0 flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <button onClick={handleGoToLobby} title="Torna alla scelta dei libri" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700">
                         <Home size={20} /> <span className="hidden md:inline">Lobby</span>
                     </button>
@@ -1219,13 +1220,15 @@ export default function App() {
                         </button>
                     </div>
                 </div>
-                <Toolbar 
-                    onFontChange={handleFontChange} 
-                    onAlignChange={handleAlignChange} 
-                    currentFont={currentParagraphStyle.font} 
-                    currentAlign={currentParagraphStyle.align} 
-                    isParagraphSelected={selectedItem?.type === 'paragraph'}
-                />
+                <div className="flex-shrink-0">
+                    <Toolbar 
+                        onFontChange={handleFontChange} 
+                        onAlignChange={handleAlignChange} 
+                        currentFont={currentParagraphStyle.font} 
+                        currentAlign={currentParagraphStyle.align} 
+                        isParagraphSelected={selectedItem?.type === 'paragraph'}
+                    />
+                </div>
                 <Editor 
                     item={editorItem} 
                     projectData={activeBookData} 
