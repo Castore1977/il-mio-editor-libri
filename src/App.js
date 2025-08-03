@@ -5,7 +5,6 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query } from "firebase/firestore";
 
-
 // --- FIREBASE CONFIGURATION ---
 // ATTENZIONE: Queste chiavi sono di esempio e non funzioneranno.
 // Sostituiscile con le tue chiavi Firebase reali.
@@ -390,9 +389,10 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
                 <div key={chapter.id} className="mb-2" draggable onDragStart={(e) => onDragStart(e, { type: 'chapter', chapterIndex: cIndex })} onDragOver={onDragOver} onDrop={(e) => onDrop(e, { type: 'chapter', chapterIndex: cIndex })} onDragEnd={onDragEnd}>
                     <div onClick={() => onSelect({ type: 'chapter', index: cIndex })} className={`flex items-center p-2 rounded-md cursor-pointer group ${selectedItem?.type === 'chapter' && selectedItem?.index === cIndex ? 'bg-blue-100 dark:bg-blue-900' : 'hover:bg-gray-200 dark:hover:bg-gray-800'}`}>
                         <GripVertical size={16} className="text-gray-400 mr-2 flex-shrink-0" />
-                            <div className="flex-1 truncate flex items-center gap-2">
+                            {/* --- FIX: Aggiunto min-w-0 per permettere al testo di troncarsi correttamente --- */}
+                            <div className="flex-1 flex items-center gap-2 min-w-0">
                                 <chapterStatus.Icon size={16} className={chapterStatus.color} title={`Stato: ${chapterStatus.label}`} />
-                                <span className="font-semibold">{`${cIndex + 1}. ${chapter.title}`}</span>
+                                <span className="font-semibold truncate">{`${cIndex + 1}. ${chapter.title}`}</span>
                             </div>
                         <button onClick={(e) => { e.stopPropagation(); onAddParagraphToChapter(cIndex); }} className="ml-2 text-gray-400 hover:text-blue-500 opacity-0 group-hover:opacity-100" title="Aggiungi paragrafo"><Plus size={16} /></button>
                         <button onClick={(e) => { e.stopPropagation(); onRemoveChapter(cIndex); }} className="ml-2 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100" title="Elimina capitolo"><Trash2 size={16} /></button>
@@ -404,8 +404,8 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
                                 const pStatus = STATUSES[pStatusKey];
                                 return (
                             <div key={p.id} draggable onDragStart={(e) => { e.stopPropagation(); onDragStart(e, { type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex }); }} onDragOver={(e) => { e.stopPropagation(); onDragOver(e); }} onDrop={(e) => { e.stopPropagation(); onDrop(e, { type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex }); }} onDragEnd={onDragEnd} className="flex items-center group">
-                                {/* --- FIX: Rimosso 'truncate' dalla classe del div contenitore --- */}
-                                        <div onClick={() => onSelect({ type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex })} className={`flex-1 p-2 rounded-md cursor-pointer text-sm flex items-center ${selectedItem?.type === 'paragraph' && selectedItem?.chapterIndex === cIndex && selectedItem?.paragraphIndex === pIndex ? 'bg-blue-100 dark:bg-blue-900' : 'hover:bg-gray-200 dark:hover:bg-gray-800'}`}>
+                                        {/* --- FIX: Aggiunto min-w-0 per permettere al testo di troncarsi correttamente --- */}
+                                        <div onClick={() => onSelect({ type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex })} className={`flex-1 p-2 rounded-md cursor-pointer text-sm flex items-center min-w-0 ${selectedItem?.type === 'paragraph' && selectedItem?.chapterIndex === cIndex && selectedItem?.paragraphIndex === pIndex ? 'bg-blue-100 dark:bg-blue-900' : 'hover:bg-gray-200 dark:hover:bg-gray-800'}`}>
                                     <pStatus.Icon size={14} className={`mr-2 flex-shrink-0 ${pStatus.color}`} title={`Stato: ${pStatus.label}`} />
                                     <span className="text-gray-500 mr-2">{`${cIndex + 1}.${pIndex + 1}`}</span>
                                     <span className="truncate">{p.title}</span>
@@ -1388,4 +1388,3 @@ export default function App() {
         </div>
     );
 }
-
