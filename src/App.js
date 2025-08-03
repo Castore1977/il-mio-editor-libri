@@ -539,7 +539,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
     const renderers = {
         chapter: () => (
             <div className="flex flex-col h-full p-8">
-                <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Capitolo" className="text-4xl font-bold w-full bg-transparent focus:outline-none mb-8 py-2"/>
+                <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Capitolo" className="text-4xl font-bold w-full bg-transparent focus:outline-none mb-8 h-16"/>
                 <button onClick={onAddParagraph} className="flex items-center text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"><Plus size={16} className="mr-1" /> Aggiungi Paragrafo</button>
             </div>
         ),
@@ -547,7 +547,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
             <div className="flex flex-col h-full">
                 <div className="flex-shrink-0 px-8 pt-8">
                     <div className="flex items-center justify-between mb-4 border-b border-gray-300 dark:border-gray-700 pb-2">
-                        <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none py-2"/>
+                        <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none h-12"/>
                         <button onClick={() => onEnterConcentrationMode(item)} className="p-2 text-gray-500 hover:text-blue-500" title="Modalità Concentrazione">
                             <Maximize size={20} />
                         </button>
@@ -621,15 +621,15 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
         ),
         character: () => (
              <div className="flex flex-col h-full p-8">
-                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Personaggio" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-2 py-2"/>
-                <input key={`nickname-${item.data.id}`} type="text" defaultValue={item.data.nickname} onBlur={(e) => onUpdate('nickname', e.target.value)} placeholder="Soprannome" className="text-xl italic text-gray-500 w-full bg-transparent focus:outline-none mb-6"/>
+                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Personaggio" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-2 h-14"/>
+                <input key={`nickname-${item.data.id}`} type="text" defaultValue={item.data.nickname} onBlur={(e) => onUpdate('nickname', e.target.value)} placeholder="Soprannome" className="text-xl italic text-gray-500 w-full bg-transparent focus:outline-none mb-6 h-10"/>
                 <textarea key={`bio-${item.data.id}`} defaultValue={item.data.bio} onBlur={(e) => onUpdate('bio', e.target.value)} placeholder="Dati anagrafici" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md mb-4 h-24"/>
                 <textarea key={`notes-${item.data.id}`} defaultValue={item.data.notes} onBlur={(e) => onUpdate('notes', e.target.value)} placeholder="Note libere" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1"/>
             </div>
         ),
         place: () => (
              <div className="flex flex-col h-full p-8">
-                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Luogo" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-4 py-2"/>
+                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Luogo" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-4 h-14"/>
                 <textarea key={`desc-${item.data.id}`} defaultValue={item.data.description} onBlur={(e) => onUpdate('description', e.target.value)} placeholder="Descrizione del luogo" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1"/>
             </div>
         )
