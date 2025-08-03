@@ -30,8 +30,9 @@ try {
 }
 
 // --- STATI DI AVANZAMENTO ---
+// MODIFICA: Cambiato il colore di 'Da Iniziare' in rosso per una migliore visibilità.
 const STATUSES = {
-    da_iniziare: { label: 'Da Iniziare', color: 'text-gray-500', Icon: Circle },
+    da_iniziare: { label: 'Da Iniziare', color: 'text-red-500', Icon: Circle },
     in_stesura: { label: 'In Stesura', color: 'text-yellow-500', Icon: CircleDot },
     draft: { label: 'Draft', color: 'text-blue-500', Icon: CircleDot },
     completo: { label: 'Completo', color: 'text-green-500', Icon: CircleCheck },
@@ -208,14 +209,12 @@ const BookLobby = ({ books, onSelectBook, onCreateBook, onDeleteBook, onExportAl
         );
     }
     return (
-        // FIX: Utilizzo di flexbox per centrare verticalmente e orizzontalmente il contenuto principale.
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center p-4">
              <div className="absolute top-4 right-4">
                    <button onClick={onLogout} className="p-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-2">
                        <LogOut size={16} /> Logout
                    </button>
              </div>
-            {/* FIX: Rimosso mt-16, il centraggio è gestito dal contenitore flex. */}
             <div className="w-full max-w-3xl mx-auto">
                 <h1 className="text-4xl font-bold text-center mb-8">I Tuoi Libri</h1>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
@@ -388,7 +387,6 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
                     <div key={chapter.id} className="mb-1" draggable onDragStart={(e) => onDragStart(e, { type: 'chapter', chapterIndex: cIndex })} onDragOver={onDragOver} onDrop={(e) => onDrop(e, { type: 'chapter', chapterIndex: cIndex })} onDragEnd={onDragEnd}>
                         <div onClick={() => onSelect({ type: 'chapter', index: cIndex })} className={`flex items-center p-2 rounded-md cursor-pointer group ${selectedItem?.type === 'chapter' && selectedItem?.index === cIndex ? 'bg-blue-100 dark:bg-blue-900' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
                             <GripVertical size={16} className="text-gray-400 mr-2 flex-shrink-0" />
-                            {/* FIX: Contenitore flex per gestire il troncamento del testo */}
                             <div className="flex-1 flex items-center gap-2 min-w-0">
                                 <chapterStatus.Icon size={16} className={`${chapterStatus.color} flex-shrink-0`} title={`Stato: ${chapterStatus.label}`} />
                                 <span className="font-semibold truncate flex-1">{`${cIndex + 1}. ${chapter.title}`}</span>
@@ -402,8 +400,8 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
                                 const pStatus = STATUSES[pStatusKey];
                                 return (
                                     <div key={p.id} draggable onDragStart={(e) => { e.stopPropagation(); onDragStart(e, { type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex }); }} onDragOver={(e) => { e.stopPropagation(); onDragOver(e); }} onDrop={(e) => { e.stopPropagation(); onDrop(e, { type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex }); }} onDragEnd={onDragEnd} className="flex items-center group">
-                                        {/* FIX: Aggiunto min-w-0 per garantire che il troncamento del testo funzioni correttamente in un contenitore flex. */}
                                         <div onClick={() => onSelect({ type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex })} className={`flex-1 p-1.5 rounded-md cursor-pointer text-sm flex items-center min-w-0 ${selectedItem?.type === 'paragraph' && selectedItem?.chapterIndex === cIndex && selectedItem?.paragraphIndex === pIndex ? 'bg-blue-100 dark:bg-blue-900' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
+                                            {/* MODIFICA: Assicurata la presenza dell'icona di stato per ogni paragrafo. */}
                                             <pStatus.Icon size={14} className={`mr-2 flex-shrink-0 ${pStatus.color}`} title={`Stato: ${pStatus.label}`} />
                                             <span className="text-gray-500 mr-2 flex-shrink-0">{`${cIndex + 1}.${pIndex + 1}`}</span>
                                             <span className="truncate flex-1">{p.title}</span>
@@ -546,9 +544,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
             </div>
         ),
         paragraph: () => (
-            // FIX: La struttura è stata semplificata. Questo contenitore flex column assicura che gli elementi si impilino correttamente.
             <div className="flex flex-col h-full">
-                {/* Contenitore per i metadati, non si espande */}
                 <div className="flex-shrink-0 px-8 pt-8">
                     <div className="flex items-center justify-between mb-4 border-b border-gray-300 dark:border-gray-700 pb-2">
                         <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none"/>
@@ -591,11 +587,9 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                         </div>
                     </div>
                 </div>
-                {/* FIX: Contenitore per l'editor di testo. Si espande e ha lo scroll interno. */}
                 <div className="flex-1 overflow-y-auto px-8 py-4">
                     <div key={`content-${item.data.id}`} ref={contentRef} contentEditable suppressContentEditableWarning onBlur={(e) => onUpdate('content', e.target.innerHTML)} className="prose dark:prose-invert prose-lg max-w-none w-full focus:outline-none" style={{ fontFamily: item.data.font || 'Arial', textAlign: item.data.align || 'left' }} dangerouslySetInnerHTML={{ __html: item.data.content }}/>
                 </div>
-                {/* Contenitore per i collegamenti, non si espande */}
                 <div className="flex-shrink-0 mt-4 p-8 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <h3 className="font-bold mb-2">Collegamenti</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -642,8 +636,6 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
     };
 
     return (
-        // FIX: Rimosso p-8/p-12 e overflow-y-hidden. Lo scroll è gestito internamente dal renderer del paragrafo.
-        // flex-1 e flex-col assicurano che questo componente riempia lo spazio disponibile.
         <main className="flex-1 flex flex-col overflow-y-auto">
             <div className="max-w-4xl mx-auto w-full h-full flex flex-col">
                 {renderers[item.type] ? renderers[item.type]() : null}
@@ -1352,11 +1344,6 @@ export default function App() {
                 onRemovePlace={removePlace}
                 onShowTimeline={() => setIsTimelineMode(true)}
             />
-            {/* FIX: Contenitore principale per l'editor e la toolbar.
-                - flex-1: occupa lo spazio rimanente.
-                - flex flex-col: impila i figli verticalmente.
-                - overflow-hidden: impedisce al contenitore stesso di avere uno scroll, forzando lo scroll all'interno del componente Editor.
-            */}
             <div className="flex-1 flex flex-col overflow-hidden">
                 <header className="flex-shrink-0 flex justify-between items-center p-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                     <button onClick={handleGoToLobby} title="Torna alla scelta dei libri" className="flex items-center space-x-2 p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700">
