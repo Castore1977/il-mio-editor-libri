@@ -5,6 +5,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query } from "firebase/firestore";
 
+
 // --- FIREBASE CONFIGURATION ---
 // ATTENZIONE: Queste chiavi sono di esempio e non funzioneranno.
 // Sostituiscile con le tue chiavi Firebase reali.
@@ -403,7 +404,8 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
                                 const pStatus = STATUSES[pStatusKey];
                                 return (
                             <div key={p.id} draggable onDragStart={(e) => { e.stopPropagation(); onDragStart(e, { type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex }); }} onDragOver={(e) => { e.stopPropagation(); onDragOver(e); }} onDrop={(e) => { e.stopPropagation(); onDrop(e, { type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex }); }} onDragEnd={onDragEnd} className="flex items-center group">
-                                <div onClick={() => onSelect({ type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex })} className={`flex-1 p-2 rounded-md cursor-pointer text-sm truncate flex items-center ${selectedItem?.type === 'paragraph' && selectedItem?.chapterIndex === cIndex && selectedItem?.paragraphIndex === pIndex ? 'bg-blue-100 dark:bg-blue-900' : 'hover:bg-gray-200 dark:hover:bg-gray-800'}`}>
+                                {/* --- FIX: Rimosso 'truncate' dalla classe del div contenitore --- */}
+                                        <div onClick={() => onSelect({ type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex })} className={`flex-1 p-2 rounded-md cursor-pointer text-sm flex items-center ${selectedItem?.type === 'paragraph' && selectedItem?.chapterIndex === cIndex && selectedItem?.paragraphIndex === pIndex ? 'bg-blue-100 dark:bg-blue-900' : 'hover:bg-gray-200 dark:hover:bg-gray-800'}`}>
                                     <pStatus.Icon size={14} className={`mr-2 flex-shrink-0 ${pStatus.color}`} title={`Stato: ${pStatus.label}`} />
                                     <span className="text-gray-500 mr-2">{`${cIndex + 1}.${pIndex + 1}`}</span>
                                     <span className="truncate">{p.title}</span>
@@ -1386,3 +1388,4 @@ export default function App() {
         </div>
     );
 }
+
