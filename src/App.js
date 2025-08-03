@@ -640,8 +640,8 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
         ),
         character: () => (
              <div className="flex flex-col h-full p-8">
-                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Personaggio" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-2 py-4"/>
-                <input key={`nickname-${item.data.id}`} type="text" defaultValue={item.data.nickname} onBlur={(e) => onUpdate('nickname', e.target.value)} placeholder="Soprannome" className="text-xl italic text-gray-500 w-full bg-transparent focus:outline-none mb-6 py-2"/>
+                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Personaggio" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-2 py-6"/>
+                <input key={`nickname-${item.data.id}`} type="text" defaultValue={item.data.nickname} onBlur={(e) => onUpdate('nickname', e.target.value)} placeholder="Soprannome" className="text-xl italic text-gray-500 w-full bg-transparent focus:outline-none mb-6 py-3"/>
                 <div className="flex-1 flex flex-col">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dati anagrafici</label>
                     <div
@@ -670,7 +670,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
         ),
         place: () => (
              <div className="flex flex-col h-full p-8">
-                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Luogo" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-4 py-4"/>
+                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Luogo" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-4 py-6"/>
                 <div className="flex-1 flex flex-col">
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrizione del luogo</label>
                     <div
