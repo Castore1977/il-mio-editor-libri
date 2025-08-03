@@ -4,6 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { getFirestore, collection, doc, getDocs, setDoc, deleteDoc, onSnapshot, query } from "firebase/firestore";
 
+
 // --- FIREBASE CONFIGURATION ---
 // ATTENZIONE: Queste chiavi sono di esempio e non funzioneranno.
 // Sostituiscile con le tue chiavi Firebase reali.
