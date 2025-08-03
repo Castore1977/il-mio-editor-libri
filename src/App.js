@@ -30,7 +30,6 @@ try {
 }
 
 // --- STATI DI AVANZAMENTO ---
-// MODIFICA: Cambiato il colore di 'Da Iniziare' in rosso per una migliore visibilità.
 const STATUSES = {
     da_iniziare: { label: 'Da Iniziare', color: 'text-red-500', Icon: Circle },
     in_stesura: { label: 'In Stesura', color: 'text-yellow-500', Icon: CircleDot },
@@ -48,8 +47,8 @@ const createNewBook = (title) => ({
     lastModified: Date.now(),
     data: {
         chapters: [{ id: generateId(), title: 'Introduzione', paragraphs: [{ id: generateId(), title: 'Primo Paragrafo', content: 'Inizia a scrivere qui...', font: 'Arial', align: 'left', linkedCharacterIds: [], linkedPlaceIds: [], startDate: '', endDate: '', status: 'da_iniziare', notes: '' }] }],
-        characters: [{ id: generateId(), name: 'Protagonista', nickname: 'Eroe', bio: 'Nato il...', notes: 'Nessuna nota' }],
-        places: [{ id: generateId(), name: 'Città Iniziale', description: 'Una ridente cittadina.' }]
+        characters: [{ id: generateId(), name: 'Protagonista', nickname: 'Eroe', bio: 'Nato il...', notes: 'Nessuna nota', font: 'Arial', align: 'left' }],
+        places: [{ id: generateId(), name: 'Città Iniziale', description: 'Una ridente cittadina.', font: 'Arial', align: 'left' }]
     }
 });
 
@@ -401,7 +400,6 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
                                 return (
                                     <div key={p.id} draggable onDragStart={(e) => { e.stopPropagation(); onDragStart(e, { type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex }); }} onDragOver={(e) => { e.stopPropagation(); onDragOver(e); }} onDrop={(e) => { e.stopPropagation(); onDrop(e, { type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex }); }} onDragEnd={onDragEnd} className="flex items-center group">
                                         <div onClick={() => onSelect({ type: 'paragraph', chapterIndex: cIndex, paragraphIndex: pIndex })} className={`flex-1 p-1.5 rounded-md cursor-pointer text-sm flex items-center min-w-0 ${selectedItem?.type === 'paragraph' && selectedItem?.chapterIndex === cIndex && selectedItem?.paragraphIndex === pIndex ? 'bg-blue-100 dark:bg-blue-900' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}>
-                                            {/* MODIFICA: Assicurata la presenza dell'icona di stato per ogni paragrafo. */}
                                             <pStatus.Icon size={14} className={`mr-2 flex-shrink-0 ${pStatus.color}`} title={`Stato: ${pStatus.label}`} />
                                             <span className="text-gray-500 mr-2 flex-shrink-0">{`${cIndex + 1}.${pIndex + 1}`}</span>
                                             <span className="truncate flex-1">{p.title}</span>
@@ -523,12 +521,33 @@ const Sidebar = ({ projectData, onSelect, selectedItem, onAddChapter, onAddChara
 
 const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onEnterConcentrationMode }) => {
     const contentRef = useRef(null);
+    const bioRef = useRef(null);
+    const notesRef = useRef(null);
+    const descriptionRef = useRef(null);
 
     useEffect(() => {
-        if (item?.type === 'paragraph' && contentRef.current) {
-            if (contentRef.current.innerHTML !== item.data.content) {
-                contentRef.current.innerHTML = item.data.content;
-            }
+        if (!item || !item.data) return;
+        switch (item.type) {
+            case 'paragraph':
+                if (contentRef.current && contentRef.current.innerHTML !== item.data.content) {
+                    contentRef.current.innerHTML = item.data.content;
+                }
+                break;
+            case 'character':
+                if (bioRef.current && bioRef.current.innerHTML !== item.data.bio) {
+                    bioRef.current.innerHTML = item.data.bio;
+                }
+                if (notesRef.current && notesRef.current.innerHTML !== item.data.notes) {
+                    notesRef.current.innerHTML = item.data.notes;
+                }
+                break;
+            case 'place':
+                if (descriptionRef.current && descriptionRef.current.innerHTML !== item.data.description) {
+                    descriptionRef.current.innerHTML = item.data.description;
+                }
+                break;
+            default:
+                break;
         }
     }, [item]);
 
@@ -539,7 +558,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
     const renderers = {
         chapter: () => (
             <div className="flex flex-col h-full p-8">
-                <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Capitolo" className="text-4xl font-bold w-full bg-transparent focus:outline-none mb-8 h-16"/>
+                <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Capitolo" className="text-4xl font-bold w-full bg-transparent focus:outline-none mb-8 py-2"/>
                 <button onClick={onAddParagraph} className="flex items-center text-blue-500 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"><Plus size={16} className="mr-1" /> Aggiungi Paragrafo</button>
             </div>
         ),
@@ -547,7 +566,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
             <div className="flex flex-col h-full">
                 <div className="flex-shrink-0 px-8 pt-8">
                     <div className="flex items-center justify-between mb-4 border-b border-gray-300 dark:border-gray-700 pb-2">
-                        <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none h-12"/>
+                        <input key={`title-${item.data.id}`} type="text" defaultValue={item.data.title} onBlur={(e) => onUpdate('title', e.target.value)} placeholder="Titolo del Paragrafo" className="text-2xl font-semibold w-full bg-transparent focus:outline-none py-2"/>
                         <button onClick={() => onEnterConcentrationMode(item)} className="p-2 text-gray-500 hover:text-blue-500" title="Modalità Concentrazione">
                             <Maximize size={20} />
                         </button>
@@ -621,16 +640,50 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
         ),
         character: () => (
              <div className="flex flex-col h-full p-8">
-                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Personaggio" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-2 h-14"/>
-                <input key={`nickname-${item.data.id}`} type="text" defaultValue={item.data.nickname} onBlur={(e) => onUpdate('nickname', e.target.value)} placeholder="Soprannome" className="text-xl italic text-gray-500 w-full bg-transparent focus:outline-none mb-6 h-10"/>
-                <textarea key={`bio-${item.data.id}`} defaultValue={item.data.bio} onBlur={(e) => onUpdate('bio', e.target.value)} placeholder="Dati anagrafici" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md mb-4 h-24"/>
-                <textarea key={`notes-${item.data.id}`} defaultValue={item.data.notes} onBlur={(e) => onUpdate('notes', e.target.value)} placeholder="Note libere" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1"/>
+                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Personaggio" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-2 py-2"/>
+                <input key={`nickname-${item.data.id}`} type="text" defaultValue={item.data.nickname} onBlur={(e) => onUpdate('nickname', e.target.value)} placeholder="Soprannome" className="text-xl italic text-gray-500 w-full bg-transparent focus:outline-none mb-6 py-1"/>
+                <div className="flex-1 flex flex-col">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Dati anagrafici</label>
+                    <div
+                        key={`bio-${item.data.id}`}
+                        ref={bioRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => onUpdate('bio', e.target.innerHTML)}
+                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 p-2 rounded-md min-h-[96px] mb-4"
+                        style={{ fontFamily: item.data.font, textAlign: item.data.align }}
+                        dangerouslySetInnerHTML={{ __html: item.data.bio }}
+                    />
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Note libere</label>
+                    <div
+                        key={`notes-${item.data.id}`}
+                        ref={notesRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => onUpdate('notes', e.target.innerHTML)}
+                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1 min-h-[128px]"
+                        style={{ fontFamily: item.data.font, textAlign: item.data.align }}
+                        dangerouslySetInnerHTML={{ __html: item.data.notes }}
+                    />
+                </div>
             </div>
         ),
         place: () => (
              <div className="flex flex-col h-full p-8">
-                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Luogo" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-4 h-14"/>
-                <textarea key={`desc-${item.data.id}`} defaultValue={item.data.description} onBlur={(e) => onUpdate('description', e.target.value)} placeholder="Descrizione del luogo" className="w-full bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1"/>
+                <input key={`name-${item.data.id}`} type="text" defaultValue={item.data.name} onBlur={(e) => onUpdate('name', e.target.value)} placeholder="Nome Luogo" className="text-3xl font-bold w-full bg-transparent focus:outline-none mb-4 py-2"/>
+                <div className="flex-1 flex flex-col">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descrizione del luogo</label>
+                    <div
+                        key={`desc-${item.data.id}`}
+                        ref={descriptionRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onBlur={(e) => onUpdate('description', e.target.innerHTML)}
+                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1 min-h-[200px]"
+                        style={{ fontFamily: item.data.font, textAlign: item.data.align }}
+                        dangerouslySetInnerHTML={{ __html: item.data.description }}
+                    />
+                </div>
             </div>
         )
     };
@@ -644,7 +697,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
     );
 };
 
-const Toolbar = ({ onFontChange, onAlignChange, currentFont, currentAlign, isParagraphSelected, variant = 'default' }) => {
+const Toolbar = ({ onFontChange, onAlignChange, currentFont, currentAlign, isTextEditable, variant = 'default' }) => {
     const fonts = ['Arial', 'Verdana', 'Times New Roman', 'Georgia', 'Courier New', 'Comic Sans MS'];
     const applyStyle = (command) => document.execCommand(command, false, null);
 
@@ -658,21 +711,21 @@ const Toolbar = ({ onFontChange, onAlignChange, currentFont, currentAlign, isPar
 
     return (
         <div className={`flex-shrink-0 p-2 flex items-center space-x-2 flex-wrap justify-center ${containerStyle}`}>
-            <button onClick={() => applyStyle('bold')} disabled={!isParagraphSelected} className={`p-2 rounded disabled:opacity-50 ${buttonStyle}`}><Bold size={20} /></button>
-            <button onClick={() => applyStyle('italic')} disabled={!isParagraphSelected} className={`p-2 rounded disabled:opacity-50 ${buttonStyle}`}><Italic size={20} /></button>
-            <button onClick={() => applyStyle('underline')} disabled={!isParagraphSelected} className={`p-2 rounded disabled:opacity-50 ${buttonStyle}`}><Underline size={20} /></button>
+            <button onClick={() => applyStyle('bold')} disabled={!isTextEditable} className={`p-2 rounded disabled:opacity-50 ${buttonStyle}`}><Bold size={20} /></button>
+            <button onClick={() => applyStyle('italic')} disabled={!isTextEditable} className={`p-2 rounded disabled:opacity-50 ${buttonStyle}`}><Italic size={20} /></button>
+            <button onClick={() => applyStyle('underline')} disabled={!isTextEditable} className={`p-2 rounded disabled:opacity-50 ${buttonStyle}`}><Underline size={20} /></button>
             
             <div className={`h-6 border-l ${separatorStyle} mx-2`}></div>
             
-            <select onChange={(e) => onFontChange(e.target.value)} value={currentFont} disabled={!isParagraphSelected} className={`p-2 rounded focus:outline-none disabled:opacity-50 ${selectStyle}`}>
+            <select onChange={(e) => onFontChange(e.target.value)} value={currentFont} disabled={!isTextEditable} className={`p-2 rounded focus:outline-none disabled:opacity-50 ${selectStyle}`}>
                 {fonts.map(font => <option key={font} value={font}>{font}</option>)}
             </select>
             
             <div className={`h-6 border-l ${separatorStyle} mx-2`}></div>
             
-            <button onClick={() => onAlignChange('left')} disabled={!isParagraphSelected} className={`p-2 rounded ${currentAlign === 'left' ? activeButtonStyle : buttonStyle} disabled:opacity-50`}><AlignLeft size={20} /></button>
-            <button onClick={() => onAlignChange('center')} disabled={!isParagraphSelected} className={`p-2 rounded ${currentAlign === 'center' ? activeButtonStyle : buttonStyle} disabled:opacity-50`}><AlignCenter size={20} /></button>
-            <button onClick={() => onAlignChange('right')} disabled={!isParagraphSelected} className={`p-2 rounded ${currentAlign === 'right' ? activeButtonStyle : buttonStyle} disabled:opacity-50`}><AlignRight size={20} /></button>
+            <button onClick={() => onAlignChange('left')} disabled={!isTextEditable} className={`p-2 rounded ${currentAlign === 'left' ? activeButtonStyle : buttonStyle} disabled:opacity-50`}><AlignLeft size={20} /></button>
+            <button onClick={() => onAlignChange('center')} disabled={!isTextEditable} className={`p-2 rounded ${currentAlign === 'center' ? activeButtonStyle : buttonStyle} disabled:opacity-50`}><AlignCenter size={20} /></button>
+            <button onClick={() => onAlignChange('right')} disabled={!isTextEditable} className={`p-2 rounded ${currentAlign === 'right' ? activeButtonStyle : buttonStyle} disabled:opacity-50`}><AlignRight size={20} /></button>
         </div>
     );
 };
@@ -818,7 +871,7 @@ const ConcentrationEditor = ({ item, onUpdate, onExit, onFontChange, onAlignChan
                     onAlignChange={handleLocalAlignChange} 
                     currentFont={currentData.font} 
                     currentAlign={currentData.align}
-                    isParagraphSelected={true}
+                    isTextEditable={true}
                  />
             </div>
             <div 
@@ -1048,7 +1101,7 @@ export default function App() {
     }), [updateActiveBookData]);
 
     const addCharacter = useCallback(() => updateActiveBookData(data => {
-        data.characters.push({ id: generateId(), name: 'Nuovo Personaggio', nickname: '', bio: '', notes: '' });
+        data.characters.push({ id: generateId(), name: 'Nuovo Personaggio', nickname: '', bio: '', notes: '', font: 'Arial', align: 'left' });
         setSelectedItem({ type: 'character', index: data.characters.length - 1 });
         setActiveTab('characters');
         return data;
@@ -1068,7 +1121,7 @@ export default function App() {
     }), [updateActiveBookData]);
 
     const addPlace = useCallback(() => updateActiveBookData(data => {
-        data.places.push({ id: generateId(), name: 'Nuovo Luogo', description: '' });
+        data.places.push({ id: generateId(), name: 'Nuovo Luogo', description: '', font: 'Arial', align: 'left' });
         setSelectedItem({ type: 'place', index: data.places.length - 1 });
         setActiveTab('places');
         return data;
@@ -1122,13 +1175,15 @@ export default function App() {
     }, [selectedItem, updateActiveBookData]);
 
     const handleFontChange = useCallback((font) => {
-        if (selectedItem?.type !== 'paragraph') return;
-        document.execCommand("fontName", false, font);
+        if (!selectedItem) return;
+        if (selectedItem.type === 'paragraph') {
+            document.execCommand("fontName", false, font);
+        }
         handleUpdateSelectedItem('font', font);
     }, [selectedItem, handleUpdateSelectedItem]);
 
     const handleAlignChange = useCallback((align) => {
-        if (selectedItem?.type !== 'paragraph') return;
+        if (!selectedItem) return;
         handleUpdateSelectedItem('align', align);
     }, [selectedItem, handleUpdateSelectedItem]);
     
@@ -1294,7 +1349,7 @@ export default function App() {
             : activeBookData.places[selectedItem.index]
     } : null;
 
-    const currentParagraphStyle = (selectedItem?.type === 'paragraph' && editorItem?.data) || { font: 'Arial', align: 'left' };
+    const currentItemStyle = (selectedItem && editorItem?.data) ? { font: editorItem.data.font || 'Arial', align: editorItem.data.align || 'left' } : { font: 'Arial', align: 'left' };
 
     const activeBookStatusKey = calculateBookStatus(activeBookData);
     const activeBookStatus = STATUSES[activeBookStatusKey];
@@ -1367,9 +1422,9 @@ export default function App() {
                 <Toolbar 
                     onFontChange={handleFontChange} 
                     onAlignChange={handleAlignChange} 
-                    currentFont={currentParagraphStyle.font} 
-                    currentAlign={currentParagraphStyle.align} 
-                    isParagraphSelected={selectedItem?.type === 'paragraph'}
+                    currentFont={currentItemStyle.font} 
+                    currentAlign={currentItemStyle.align} 
+                    isTextEditable={['paragraph', 'character', 'place'].includes(selectedItem?.type)}
                 />
                 
                 <Editor 
