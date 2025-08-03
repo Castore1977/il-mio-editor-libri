@@ -607,7 +607,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                     </div>
                 </div>
                 <div className="flex-1 overflow-y-auto px-8 py-4">
-                    <div key={`content-${item.data.id}`} ref={contentRef} contentEditable suppressContentEditableWarning onBlur={(e) => onUpdate('content', e.target.innerHTML)} className="prose dark:prose-invert prose-lg max-w-none w-full focus:outline-none" style={{ fontFamily: item.data.font || 'Arial', textAlign: item.data.align || 'left' }} dangerouslySetInnerHTML={{ __html: item.data.content }}/>
+                    <div key={`content-${item.data.id}`} ref={contentRef} contentEditable suppressContentEditableWarning onBlur={(e) => onUpdate('content', e.target.innerHTML)} className="prose dark:prose-invert prose-lg max-w-none w-full focus:outline-none leading-relaxed" style={{ fontFamily: item.data.font || 'Arial', textAlign: item.data.align || 'left' }} dangerouslySetInnerHTML={{ __html: item.data.content }}/>
                 </div>
                 <div className="flex-shrink-0 mt-4 p-8 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <h3 className="font-bold mb-2">Collegamenti</h3>
@@ -650,7 +650,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => onUpdate('bio', e.target.innerHTML)}
-                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 rounded-md min-h-[96px] mb-4 py-4 px-3"
+                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 rounded-md min-h-[96px] mb-4 p-3 leading-relaxed"
                         style={{ fontFamily: item.data.font, textAlign: item.data.align }}
                         dangerouslySetInnerHTML={{ __html: item.data.bio }}
                     />
@@ -661,7 +661,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => onUpdate('notes', e.target.innerHTML)}
-                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 rounded-md flex-1 min-h-[128px] py-4 px-3"
+                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 rounded-md flex-1 min-h-[128px] p-3 leading-relaxed"
                         style={{ fontFamily: item.data.font, textAlign: item.data.align }}
                         dangerouslySetInnerHTML={{ __html: item.data.notes }}
                     />
@@ -679,7 +679,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => onUpdate('description', e.target.innerHTML)}
-                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 rounded-md flex-1 min-h-[200px] py-4 px-3"
+                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 rounded-md flex-1 min-h-[200px] p-3 leading-relaxed"
                         style={{ fontFamily: item.data.font, textAlign: item.data.align }}
                         dangerouslySetInnerHTML={{ __html: item.data.description }}
                     />
