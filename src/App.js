@@ -209,11 +209,11 @@ const BookLobby = ({ books, onSelectBook, onCreateBook, onDeleteBook, onExportAl
     }
     return (
         <div className="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 flex items-center justify-center p-4">
-             <div className="absolute top-4 right-4">
-                    <button onClick={onLogout} className="p-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-2">
-                        <LogOut size={16} /> Logout
-                    </button>
-             </div>
+                 <div className="absolute top-4 right-4">
+                        <button onClick={onLogout} className="p-2 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex items-center gap-2">
+                            <LogOut size={16} /> Logout
+                        </button>
+                 </div>
             <div className="w-full max-w-3xl mx-auto">
                 <h1 className="text-4xl font-bold text-center mb-8">I Tuoi Libri</h1>
                 <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg mb-8">
@@ -650,7 +650,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => onUpdate('bio', e.target.innerHTML)}
-                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 p-2 rounded-md min-h-[96px] mb-4"
+                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 rounded-md min-h-[96px] mb-4 py-4 px-3"
                         style={{ fontFamily: item.data.font, textAlign: item.data.align }}
                         dangerouslySetInnerHTML={{ __html: item.data.bio }}
                     />
@@ -661,7 +661,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => onUpdate('notes', e.target.innerHTML)}
-                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1 min-h-[128px]"
+                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 rounded-md flex-1 min-h-[128px] py-4 px-3"
                         style={{ fontFamily: item.data.font, textAlign: item.data.align }}
                         dangerouslySetInnerHTML={{ __html: item.data.notes }}
                     />
@@ -679,7 +679,7 @@ const Editor = ({ item, onUpdate, onAddParagraph, projectData, onLinkChange, onE
                         contentEditable
                         suppressContentEditableWarning
                         onBlur={(e) => onUpdate('description', e.target.innerHTML)}
-                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 p-2 rounded-md flex-1 min-h-[200px]"
+                        className="prose dark:prose-invert max-w-none w-full focus:outline-none bg-gray-50 dark:bg-gray-800 rounded-md flex-1 min-h-[200px] py-4 px-3"
                         style={{ fontFamily: item.data.font, textAlign: item.data.align }}
                         dangerouslySetInnerHTML={{ __html: item.data.description }}
                     />
